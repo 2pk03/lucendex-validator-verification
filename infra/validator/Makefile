@@ -100,6 +100,9 @@ update-config: ## Update rippled configuration
 	@scp -i $(SSH_KEY) docker/rippled.cfg root@$(VALIDATOR_IP):/opt/rippled/
 	@echo "Configuration updated. Restart required: make restart"
 
+verify-image: ## Verify rippled Docker image authenticity
+	@./scripts/verify-rippled-image.sh
+
 deploy: ## Run deployment script
 	@./deploy.sh
 

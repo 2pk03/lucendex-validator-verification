@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   rippled:
-    image: rippleci/rippled:latest
+    # SECURITY: Using pinned SHA256 digest instead of :latest
+    # Verify digest with: ./scripts/verify-rippled-image.sh
+    # Official source: https://hub.docker.com/r/rippleci/rippled/tags
+    image: rippleci/rippled@sha256:467dde2bf955dba05aafb2f6020bfd8eacf64cd07305b41d7dfc3c8e12df342d
     container_name: rippled
     hostname: xrpl-validator
     restart: unless-stopped
