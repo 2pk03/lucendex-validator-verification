@@ -17,6 +17,13 @@ status: ## Check validator status
 	@echo "Checking validator status..."
 	@$(SSH_CMD) "docker exec rippled /opt/ripple/bin/rippled server_info" | jq '.result.info.server_state'
 
+sync-status: ## Check ledger sync progress
+	@echo "=== Ledger Sync Status ==="
+	@$(SSH_CMD) "docker exec rippled /opt/ripple/bin/rippled server_info 2>/dev/null" | jq -r '.result.info | {state: .server_state, complete_ledgers, validated_ledger: .validated_ledger.seq, peers, load_factor, uptime: .uptime}'
+	@echo ""
+	@echo "Network ledger (mainnet):"
+	@curl -s https://s1.ripple.com:51234 -X POST -H "Content-Type: application/json" -d '{"method":"ledger","params":[{"ledger_index":"validated"}]}' | jq -r '.result.ledger_index // "unavailable"'
+
 logs: ## View rippled logs (follow mode)
 	@echo "Following rippled logs (Ctrl+C to exit)..."
 	@$(SSH_CMD) "docker logs -f rippled"
