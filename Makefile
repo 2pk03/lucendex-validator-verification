@@ -19,7 +19,7 @@ help:
 	@echo "  make deploy            - Deploy all infrastructure"
 	@echo "  make status            - Check status of all components"
 	@echo "  make sync-status       - Check sync status of ALL rippled nodes"
-	@echo "  make logs-tail         - Follow logs from ALL nodes (live)"
+	@echo "  make logs-tail         - View recent logs from ALL nodes (last 30 lines)"
 	@echo "  make resources         - Check resources of ALL infrastructure"
 	@echo "  make destroy           - Destroy all infrastructure"
 	@echo "  make test              - Run all backend tests"
@@ -109,16 +109,17 @@ resources:
 
 logs-tail:
 	@echo "$(BLUE)╔═══════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(BLUE)║          Tailing All Node Logs (Ctrl+C to exit)           ║$(NC)"
+	@echo "$(BLUE)║          Recent Logs from All Nodes (last 30 lines)      ║$(NC)"
 	@echo "$(BLUE)╚═══════════════════════════════════════════════════════════╝$(NC)"
 	@echo ""
-	@echo "$(YELLOW)Validator:$(NC)"
-	@cd infra/validator && ssh -i terraform/validator_ssh_key root@$$(cd terraform && terraform output -raw validator_ip 2>/dev/null) "docker logs -f --tail=20 rippled 2>&1" | sed 's/^/[VALIDATOR] /' &
-	@echo "$(YELLOW)API Node:$(NC)"
-	@cd infra/data-services && ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) "docker logs -f --tail=20 lucendex-rippled-api 2>&1" | sed 's/^/[API] /' &
-	@echo "$(YELLOW)History Node:$(NC)"
-	@cd infra/data-services && ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) "docker logs -f --tail=20 lucendex-rippled-history 2>&1" | sed 's/^/[HISTORY] /' &
-	@wait
+	@echo "$(YELLOW)=== Validator (last 30 lines) ===$(NC)"
+	@cd infra/validator && ssh -i terraform/validator_ssh_key root@$$(cd terraform && terraform output -raw validator_ip 2>/dev/null) "docker logs --tail=30 rippled 2>&1" || echo "Validator not deployed"
+	@echo ""
+	@echo "$(YELLOW)=== API Node (last 30 lines) ===$(NC)"
+	@cd infra/data-services && ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) "docker logs --tail=30 lucendex-rippled-api 2>&1" || echo "API node not deployed"
+	@echo ""
+	@echo "$(YELLOW)=== History Node (last 30 lines) ===$(NC)"
+	@cd infra/data-services && ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) "docker logs --tail=30 lucendex-rippled-history 2>&1" || echo "History node not deployed"
 
 test:
 	@echo "$(GREEN)Running all backend tests...$(NC)"
