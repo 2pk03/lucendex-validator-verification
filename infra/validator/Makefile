@@ -194,6 +194,32 @@ disable-validation: ## Disable validation (comment token, deploy, restart)
 	@$(SSH_CMD) "docker exec rippled /opt/ripple/bin/rippled server_info 2>/dev/null" \
 		| jq -r '.result.info.server_state'
 
+sync-debug: ## Comprehensive sync diagnostics (snapshot)
+	@echo "=== Sync Snapshot ==="
+	@$(SSH_CMD) "docker exec rippled /opt/ripple/bin/rippled server_info" \
+		| jq '.result.info | {state:.server_state, complete:.complete_ledgers, peers:.peers, fetch_pack:.fetch_pack}'
+	@echo ""
+	@echo "=== Peer Ledger Comparison (top 20) ==="
+	@$(SSH_CMD) "docker exec rippled /opt/ripple/bin/rippled peers" \
+		| jq -r '.result.peers[] | "\(.address)  \(.complete_ledgers)"' | head -n 20
+	@echo ""
+	@echo "=== Fetch Status ==="
+	@$(SSH_CMD) "docker exec rippled /opt/ripple/bin/rippled fetch_info" \
+		| jq '.[].info | to_entries | .[:2]' || echo "Not fetching yet"
+
+logs-sync: ## Follow sync-specific logs (live)
+	@echo "Following sync logs (Ctrl+C to exit)..."
+	@echo "Watching: InboundLedger, needed_state, Acquired, accepted ledger"
+	@$(SSH_CMD) "docker exec rippled sh -lc 'tail -n +1 -f /var/log/rippled/debug.log | egrep -i \"(InboundLedger.*acquir|needed_state|got.*map|Acquired TX set|LedgerMaster.*set|accepted ledger)\"'"
+
+peers-detail: ## Show peers with their ledger ranges
+	@$(SSH_CMD) "docker exec rippled /opt/ripple/bin/rippled peers" \
+		| jq -r '.result.peers[] | "\(.address)  \(.complete_ledgers)"'
+
+fetch-status: ## Check fetch progress
+	@$(SSH_CMD) "docker exec rippled /opt/ripple/bin/rippled fetch_info" \
+		| jq '.[].info | to_entries | .[:2]' || echo "Not fetching yet"
+
 version: ## Show rippled version
 	@$(SSH_CMD) "docker exec rippled /opt/ripple/bin/rippled --version"
 

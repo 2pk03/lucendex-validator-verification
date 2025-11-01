@@ -337,6 +337,18 @@ validator-verify-backup:
 validator-verify-image:
 	@cd infra/validator && make verify-image
 
+validator-sync-debug:
+	@cd infra/validator && make sync-debug
+
+validator-logs-sync:
+	@cd infra/validator && make logs-sync
+
+validator-peers-detail:
+	@cd infra/validator && make peers-detail
+
+validator-fetch-status:
+	@cd infra/validator && make fetch-status
+
 validator-logs-startup:
 	@cd infra/validator && docker logs rippled 2>&1 | head -200
 
