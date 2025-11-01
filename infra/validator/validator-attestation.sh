@@ -5,7 +5,7 @@ set -euo pipefail
 # Detects state and either sets up or updates domain verification
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-KEYS_DIR="${HOME}/.validator-keys"
+KEYS_DIR="${HOME}/.validator-keys-secure"
 PROJECT_DIR="${SCRIPT_DIR}/lucendex-validator-verification"
 DOMAIN="lucendex.com"
 TOML_URL="https://${DOMAIN}/.well-known/xrp-ledger.toml"
@@ -59,9 +59,38 @@ install_validator_keys_tool() {
     log_info "✓ Tool installed"
 }
 
-generate_production_keys() {
-    log_step "Generating production keys with attestation..."
-    "${SCRIPT_DIR}/scripts/generate-offline-keys.sh"
+check_existing_keys() {
+    log_step "Checking for existing validator keys..."
+    
+    if [ ! -f "${KEYS_DIR}/public_key.txt" ]; then
+        log_error "No validator keys found in ${KEYS_DIR}"
+        log_error "Expected files: public_key.txt, xrp-ledger.toml"
+        log_error "Generate keys first with: make validator-generate-keys"
+        exit 1
+    fi
+    
+    local pubkey=$(cat "${KEYS_DIR}/public_key.txt" | xargs)
+    log_info "✓ Found validator keys"
+    log_info "Public key: ${pubkey}"
+    
+    # Check if xrp-ledger.toml exists
+    if [ ! -f "${KEYS_DIR}/xrp-ledger.toml" ]; then
+        log_warn "No xrp-ledger.toml found in ${KEYS_DIR}"
+        log_info "Creating from public_key.txt..."
+        
+        cat > "${KEYS_DIR}/xrp-ledger.toml" <<EOF
+# Lucendex XRPL Validator Domain Verification
+# Deploy to: https://lucendex.com/.well-known/xrp-ledger.toml
+
+[[VALIDATORS]]
+public_key = "${pubkey}"
+network = "main"
+owner_country = "MT"
+server_country = "NL"
+domain = "lucendex.com"
+EOF
+        log_info "✓ Created xrp-ledger.toml"
+    fi
 }
 
 update_validator_config() {
@@ -315,17 +344,13 @@ main() {
         fi
         
         # Update path
-        install_validator_keys_tool
-        generate_production_keys
-        update_validator_config
+        check_existing_keys
         update_cloudflare_pages
         verify_deployment
     else
         # Setup path
         log_info "Initial setup required"
-        install_validator_keys_tool
-        generate_production_keys
-        update_validator_config
+        check_existing_keys
         setup_cloudflare_pages
         verify_deployment
     fi
