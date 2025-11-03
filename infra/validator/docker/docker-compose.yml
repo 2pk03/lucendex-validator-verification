@@ -23,13 +23,16 @@ services:
       - SETGID
       - SETUID
     
-    # Resource limits - OPTIMIZED for sync phase
-    # Increased to 7.5GB to prevent swapping during initial sync
-    # Can reduce back to 6GB after sync completes
-    mem_limit: 7500m
-    mem_reservation: 4g
-    memswap_limit: 8500m
-    cpus: 3.5
+    # Resource limits - OPTIMIZED for 16GB RAM
+    # Headroom for validation spikes (can reach 10GB during peer churn)
+    # Leaves 2GB for OS
+    deploy:
+      resources:
+        limits:
+          memory: 14g
+          cpus: '3.5'
+        reservations:
+          memory: 8g
     
     # Ports
     ports:
