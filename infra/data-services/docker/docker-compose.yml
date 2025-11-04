@@ -50,12 +50,14 @@ services:
       - "51235:51235"  # Peer
     networks:
       - lucendex
-    # Resource limits - OPTIMIZED for 64GB RAM VM
+    # Resource limits - OPTIMIZED for 16-core/64GB RAM VM
     deploy:
       resources:
         limits:
+          cpus: '6.0'
           memory: 16g
         reservations:
+          cpus: '3.0'
           memory: 8g
     # File descriptor limits
     ulimits:
@@ -84,12 +86,14 @@ services:
       - "51236:51236"  # Peer
     networks:
       - lucendex
-    # Resource limits - OPTIMIZED for 64GB RAM VM (full history needs most RAM)
+    # Resource limits - OPTIMIZED for 16-core/64GB RAM VM (full history needs most RAM)
     deploy:
       resources:
         limits:
+          cpus: '8.0'
           memory: 40g
         reservations:
+          cpus: '4.0'
           memory: 24g
     # File descriptor limits
     ulimits:

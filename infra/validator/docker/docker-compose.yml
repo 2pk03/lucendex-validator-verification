@@ -23,16 +23,17 @@ services:
       - SETGID
       - SETUID
     
-    # Resource limits - OPTIMIZED for 24GB RAM
+    # Resource limits - OPTIMIZED for 8-core/24GB RAM VM
     # Headroom for validation spikes (can reach 10GB during peer churn)
     # Leaves 3GB for OS
     deploy:
       resources:
         limits:
           memory: 21g
-          cpus: '3.5'
+          cpus: '6.0'
         reservations:
           memory: 12g
+          cpus: '3.0'
     
     # Ports
     ports:

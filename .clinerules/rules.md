@@ -7,6 +7,8 @@
 - No repetitive explanations
 - Get to the point immediately
 - Respect token budget
+- **NO DOCUMENTATION FOR SCRIPTS**
+- Fix the problem, don't document it
 
 ## 1. Documentation-First Development
 **Always read `doc/` before suggesting any changes.**
