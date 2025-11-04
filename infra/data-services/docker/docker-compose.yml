@@ -62,12 +62,13 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-    healthcheck:
-      test: ["CMD-SHELL", "rippled server_info | grep -q server_state"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+    # DISABLED: Healthcheck may be causing restarts during sync
+    # healthcheck:
+    #   test: ["CMD-SHELL", "rippled server_info | grep -q server_state"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 60s
 
   # rippled Full-History Node (indexer feed)
   rippled-history:
@@ -95,12 +96,13 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-    healthcheck:
-      test: ["CMD-SHELL", "rippled server_info | grep -q server_state"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+    # DISABLED: Healthcheck may be causing restarts during sync
+    # healthcheck:
+    #   test: ["CMD-SHELL", "rippled server_info | grep -q server_state"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 60s
 
 volumes:
   postgres-data:
