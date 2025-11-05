@@ -44,6 +44,19 @@ apt-get upgrade -y
 # Configure timezone
 timedatectl set-timezone UTC
 
+# Configure zram swap (25% of RAM)
+echo "Configuring zram swap..."
+apt-get install -y linux-modules-extra-$(uname -r)
+modprobe zram
+apt-get update && apt-get install -y zram-tools
+cat > /etc/default/zramswap <<EOF
+ALGO=zstd
+PERCENT=25
+EOF
+systemctl enable zramswap
+systemctl restart zramswap
+echo "✓ zram swap configured (25% of RAM)"
+
 # Configure sysctl for performance and security
 echo "Configuring kernel parameters..."
 cat > /etc/sysctl.d/99-xrpl-validator.conf <<EOF

@@ -12,6 +12,7 @@ help:
 	@echo "  make continue-deploy       - Continue interrupted deployment (fixes SSH + deploys services)"
 	@echo "  make destroy               - Destroy data services infrastructure"
 	@echo "  make status                - Show status of all services"
+	@echo "  make version               - Show service versions"
 	@echo "  make services              - List running Docker containers"
 	@echo "  make restart               - Restart all services"
 	@echo "  make start                 - Start all services"
@@ -22,6 +23,8 @@ help:
 	@echo "  make health-check          - Comprehensive health check"
 	@echo "  make sync-status-api       - Check API node sync status"
 	@echo "  make sync-status-history   - Check history node sync status"
+	@echo "  make watch-sync-api        - Watch API node sync (10min, detect stalls)"
+	@echo "  make watch-sync-history    - Watch history node sync (10min, detect stalls)"
 	@echo "  make sync-debug-api        - API node sync diagnostics (detailed)"
 	@echo "  make sync-debug-history    - History node sync diagnostics (detailed)"
 	@echo "  make validators-api        - Check API node UNL status"
@@ -112,6 +115,21 @@ status:
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
 		"cd /opt/lucendex/docker && docker compose ps"
 
+# Show versions
+version: ## Show service versions
+	@echo "=== Service Versions ==="
+	@echo "rippled API:"
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"docker exec lucendex-rippled-api /opt/ripple/bin/rippled --version"
+	@echo ""
+	@echo "rippled History:"
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"docker exec lucendex-rippled-history /opt/ripple/bin/rippled --version"
+	@echo ""
+	@echo "PostgreSQL:"
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"docker exec lucendex-postgres psql --version"
+
 # Tail logs (follow mode)
 logs:
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
@@ -182,6 +200,20 @@ sync-status-history:
 	@echo "=== rippled Full-History Sync Status ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
 		'docker exec lucendex-rippled-history rippled server_info | jq "{state: .result.info.server_state, ledgers: .result.info.complete_ledgers, peers: .result.info.peers, uptime: .result.info.uptime}"'
+
+# Watch API node sync for stalls
+watch-sync-api:
+	@echo "=== Watching API Node Sync (10min, stall threshold: 180s) ==="
+	@scp -i terraform/data_services_ssh_key scripts/stall_detector.sh root@$$(cd terraform && terraform output -raw data_services_ip):/tmp/
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		'CONTAINER=lucendex-rippled-api PORT=51234 bash /tmp/stall_detector.sh'
+
+# Watch history node sync for stalls
+watch-sync-history:
+	@echo "=== Watching History Node Sync (10min, stall threshold: 180s) ==="
+	@scp -i terraform/data_services_ssh_key scripts/stall_detector.sh root@$$(cd terraform && terraform output -raw data_services_ip):/tmp/
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		'CONTAINER=lucendex-rippled-history PORT=51237 bash /tmp/stall_detector.sh'
 
 # Show resource usage
 resources:
@@ -324,11 +356,11 @@ sync-debug-api: ## Comprehensive API node sync diagnostics
 	@echo ""
 	@echo "=== Peer Ledger Comparison (API) ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		'docker exec lucendex-rippled-api rippled peers | jq -r ".result.peers[] | \"\(.address)  \(.complete_ledgers)\"" | head -20'
+		'docker exec lucendex-rippled-api rippled peers 2>/dev/null | jq -r "if .result.peers then (.result.peers[] | \"\(.address)  \(.complete_ledgers)\") else \"No peers data available\" end" | head -20' || echo "Peers query failed"
 	@echo ""
 	@echo "=== Fetch Status (API) ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		'docker exec lucendex-rippled-api rippled fetch_info | jq ".[].info | to_entries | .[:2]"' || echo "Not fetching yet"
+		'docker exec lucendex-rippled-api rippled fetch_info 2>/dev/null | jq -r "if type == \"object\" and .result then .result else \"Not fetching yet\" end"' || echo "Not fetching yet"
 
 sync-debug-history: ## Comprehensive history node sync diagnostics
 	@echo "=== History Node Sync Debug ==="
@@ -337,42 +369,42 @@ sync-debug-history: ## Comprehensive history node sync diagnostics
 	@echo ""
 	@echo "=== Peer Ledger Comparison (History) ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		'docker exec lucendex-rippled-history rippled peers | jq -r ".result.peers[] | \"\(.address)  \(.complete_ledgers)\"" | head -20'
+		'docker exec lucendex-rippled-history rippled peers 2>/dev/null | jq -r "if .result.peers then (.result.peers[] | \"\(.address)  \(.complete_ledgers)\") else \"No peers data available\" end" | head -20' || echo "Peers query failed"
 	@echo ""
 	@echo "=== Fetch Status (History) ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		'docker exec lucendex-rippled-history rippled fetch_info | jq ".[].info | to_entries | .[:2]"' || echo "Not fetching yet"
+		'docker exec lucendex-rippled-history rippled fetch_info 2>/dev/null | jq -r "if type == \"object\" and .result then .result else \"Not fetching yet\" end"' || echo "Not fetching yet"
 
 # Production Diagnostics
 validators-api:
 	@echo "=== API Node Validators Status ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		'docker exec lucendex-rippled-api rippled validators | jq "{status: .result.validator_list.status, expiration: .result.validator_list.expiration, publisher_sources: .result.validator_list.count, validators: (.result.trusted_validator_keys | length), quorum: .result.validation_quorum}"'
+		'docker exec lucendex-rippled-api rippled validators 2>/dev/null | jq "{status: .result.validator_list.status, expiration: .result.validator_list.expiration, publisher_sources: .result.validator_list.count, validators: (.result.trusted_validator_keys | length), quorum: .result.validation_quorum}"' || echo "Command failed or node not ready"
 
 validators-history:
 	@echo "=== History Node Validators Status ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		'docker exec lucendex-rippled-history rippled validators | jq "{status: .result.validator_list.status, expiration: .result.validator_list.expiration, publisher_sources: .result.validator_list.count, validators: (.result.trusted_validator_keys | length), quorum: .result.validation_quorum}"'
+		'docker exec lucendex-rippled-history rippled validators 2>/dev/null | jq "{status: .result.validator_list.status, expiration: .result.validator_list.expiration, publisher_sources: .result.validator_list.count, validators: (.result.trusted_validator_keys | length), quorum: .result.validation_quorum}"' || echo "Command failed or node not ready"
 
 validator-list-sites-api:
 	@echo "=== API Node UNL Sites Download Status ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		'docker exec lucendex-rippled-api rippled validator_list_sites'
+		'docker exec lucendex-rippled-api rippled validator_list_sites 2>/dev/null' || echo "Command not available or node not ready"
 
 validator-list-sites-history:
 	@echo "=== History Node UNL Sites Download Status ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		'docker exec lucendex-rippled-history rippled validator_list_sites'
+		'docker exec lucendex-rippled-history rippled validator_list_sites 2>/dev/null' || echo "Command not available or node not ready"
 
 peers-api:
 	@echo "=== API Node Peers ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		'docker exec lucendex-rippled-api rippled peers | jq "{peer_count: (.result.peers | length), peers: [.result.peers[] | {address, version, uptime}]}"'
+		'docker exec lucendex-rippled-api rippled peers 2>/dev/null | jq "if .result.peers then {peer_count: (.result.peers | length), peers: [.result.peers[] | {address, version, uptime}]} else \"No peers data available\" end"' || echo "Peers query failed"
 
 peers-history:
 	@echo "=== History Node Peers ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		'docker exec lucendex-rippled-history rippled peers | jq "{peer_count: (.result.peers | length), peers: [.result.peers[] | {address, version, uptime}]}"'
+		'docker exec lucendex-rippled-history rippled peers 2>/dev/null | jq "if .result.peers then {peer_count: (.result.peers | length), peers: [.result.peers[] | {address, version, uptime}]} else \"No peers data available\" end"' || echo "Peers query failed"
 
 db-health:
 	@echo "=== Database Health Check ==="

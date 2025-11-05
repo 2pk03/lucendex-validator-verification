@@ -13,6 +13,9 @@ help: ## Show this help message
 	@echo "  make continue-deploy     - Continue interrupted deployment (assumes SSH works)"
 	@echo "  make fix-ssh             - Fix SSH access via API (manual key add may be needed)"
 	@echo ""
+	@echo "Monitoring:"
+	@echo "  make watch-sync          - Watch sync for stalls (10min)"
+	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 ssh: ## SSH into validator
@@ -28,6 +31,11 @@ sync-status: ## Check ledger sync progress
 	@echo ""
 	@echo "Network ledger (mainnet):"
 	@curl -s https://s1.ripple.com:51234 -X POST -H "Content-Type: application/json" -d '{"method":"ledger","params":[{"ledger_index":"validated"}]}' | jq -r '.result.ledger_index // "unavailable"'
+
+watch-sync: ## Watch validator sync for stalls (10min)
+	@echo "=== Watching Validator Sync (10min, stall threshold: 180s) ==="
+	@scp -i $(SSH_KEY) scripts/stall_detector.sh root@$(VALIDATOR_IP):/tmp/
+	@$(SSH_CMD) 'CONTAINER=rippled PORT=5005 bash /tmp/stall_detector.sh'
 
 logs: ## View rippled logs (follow mode)
 	@echo "Following rippled logs (Ctrl+C to exit)..."

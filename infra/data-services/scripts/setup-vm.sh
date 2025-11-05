@@ -101,6 +101,19 @@ root soft nofile 65536
 root hard nofile 65536
 EOF
 
+# Configure zram swap (50% of RAM for heavy workloads)
+echo "Configuring zram swap..."
+apt-get install -y linux-modules-extra-$(uname -r)
+modprobe zram
+apt-get update && apt-get install -y zram-tools
+cat > /etc/default/zramswap <<EOF
+ALGO=zstd
+PERCENT=50
+EOF
+systemctl enable zramswap
+systemctl restart zramswap
+echo "✓ zram swap configured (50% of RAM)"
+
 # Configure sysctl for performance
 echo "Configuring kernel parameters..."
 cat >> /etc/sysctl.conf <<'EOF'

@@ -1,7 +1,7 @@
 # Lucendex Unified Infrastructure CLI
 # Single entry point for all infrastructure operations
 
-.PHONY: help deploy status destroy validator data-services backend test
+.PHONY: help deploy status destroy validator data-services backend test update-xrpl
 
 # Colors for output
 BLUE := \033[0;34m
@@ -16,6 +16,7 @@ help:
 	@echo "$(BLUE)╚═══════════════════════════════════════════════════════════╝$(NC)"
 	@echo ""
 	@echo "$(GREEN)Global Commands:$(NC)"
+	@echo "  make update-xrpl       - Update rippled to latest release (all nodes)"
 	@echo "  make deploy            - Deploy all infrastructure"
 	@echo "  make status            - Check status of all components"
 	@echo "  make sync-status       - Check sync status of ALL rippled nodes"
@@ -433,3 +434,9 @@ d-sync-history: data-sync-status-history
 
 b-test: backend-test
 b-build: backend-build
+
+# Update XRPL rippled version across all nodes
+update-xrpl:
+	@echo "$(GREEN)Updating rippled to latest release...$(NC)"
+	@chmod +x scripts/update-xrpl-version.sh
+	@./scripts/update-xrpl-version.sh

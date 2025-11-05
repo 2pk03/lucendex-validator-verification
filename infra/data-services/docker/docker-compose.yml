@@ -37,9 +37,11 @@ services:
 
   # rippled API Node (fast RPC)
   rippled-api:
-    image: xrpllabsofficial/xrpld:2.2.0
+    # SECURITY: Using pinned SHA256 digest (2.6.1)
+    # Verify: docker pull rippleci/rippled:2.6.1 | grep Digest
+    image: rippleci/rippled@sha256:467dde2bf955dba05aafb2f6020bfd8eacf64cd07305b41d7dfc3c8e12df342d
     container_name: lucendex-rippled-api
-    restart: unless-stopped
+    restart: always
     volumes:
       - rippled-api-data:/var/lib/rippled
       - rippled-api-logs:/var/log/rippled
@@ -64,6 +66,9 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+    # Kernel tuning
+    sysctls:
+      - net.core.somaxconn=4096
     # DISABLED: Healthcheck may be causing restarts during sync
     # healthcheck:
     #   test: ["CMD-SHELL", "rippled server_info | grep -q server_state"]
@@ -74,9 +79,11 @@ services:
 
   # rippled Full-History Node (indexer feed)
   rippled-history:
-    image: xrpllabsofficial/xrpld:2.2.0
+    # SECURITY: Using pinned SHA256 digest (2.6.1)
+    # Verify: docker pull rippleci/rippled:2.6.1 | grep Digest
+    image: rippleci/rippled@sha256:467dde2bf955dba05aafb2f6020bfd8eacf64cd07305b41d7dfc3c8e12df342d
     container_name: lucendex-rippled-history
-    restart: unless-stopped
+    restart: always
     volumes:
       - rippled-history-data:/var/lib/rippled
       - rippled-history-logs:/var/log/rippled
@@ -100,6 +107,9 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+    # Kernel tuning
+    sysctls:
+      - net.core.somaxconn=4096
     # DISABLED: Healthcheck may be causing restarts during sync
     # healthcheck:
     #   test: ["CMD-SHELL", "rippled server_info | grep -q server_state"]
