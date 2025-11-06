@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary Meta Tags -->
+  <title>LucenDEX - Deterministic Execution Infrastructure for XRPL Trading</title>
+  <meta name="title" content="LucenDEX - Deterministic Execution Infrastructure for XRPL Trading" />
+  <meta name="description"
+    content="Non-custodial XRPL execution layer with deterministic quote binding and circuit breakers. Built for wallets, fintechs, and institutions." />
+  <meta name="keywords"
+    content="XRPL, DEX infrastructure, non-custodial trading, deterministic execution, DeFi, blockchain infrastructure, crypto trading API" />
+  <meta name="robots" content="index, follow" />
+  <meta name="language" content="English" />
+  <meta name="author" content="LucenDEX" />
+
+  <!-- Canonical (normalized) -->
+  <link rel="canonical" href="https://lucendex.com/" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://lucendex.com/" />
+  <meta property="og:title" content="LucenDEX - XRPL DEX Infrastructure" />
+  <meta property="og:description"
+    content="Non-custodial, deterministic execution layer for XRPL trading. Infrastructure-grade routing and settlement for wallets, fintechs, and institutions." />
+  <meta property="og:image" content="https://lucendex.com/assets/og-image.png" />
+  <meta property="og:site_name" content="LucenDEX" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://lucendex.com/" />
+  <meta name="twitter:title" content="LucenDEX - XRPL DEX Infrastructure" />
+  <meta name="twitter:description"
+    content="Non-custodial, deterministic execution layer for XRPL trading. Built for infrastructure partners." />
+  <meta name="twitter:image" content="https://lucendex.com/assets/twitter-image.png" />
+
+  <!-- Performance hints -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://platform.twitter.com" crossorigin />
+  <link rel="preconnect" href="https://challenges.cloudflare.com" crossorigin />
+
+  <!-- JSON-LD Structured Data - WebSite (NEW) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "url": "https://lucendex.com/",
+    "name": "LucenDEX"
+  }
+  </script>
+
+  <!-- JSON-LD Structured Data - Organization (normalized URLs) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "LucenDEX",
+    "description": "Non-custodial execution infrastructure for XRPL trading",
+    "url": "https://lucendex.com/",
+    "logo": "https://lucendex.com/assets/logo.png",
+    "foundingDate": "2025",
+    "sameAs": [
+      "https://x.com/LucenDEX",
+      "https://www.linkedin.com/company/LucenDEX",
+      "https://github.com/LucenDEX"
+    ]
+  }
+  </script>
+
+  <!-- JSON-LD Structured Data - Software Application (kept) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "LucenDEX Routing Engine",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "XRPL",
+    "description": "Deterministic routing and execution infrastructure for XRPL DEX",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Non-custodial execution",
+      "Deterministic quote binding",
+      "Multi-route liquidity aggregation",
+      "Circuit breakers and safety rails",
+      "Zero-trust architecture"
+    ]
+  }
+  </script>
+
+  <!-- JSON-LD Structured Data - FAQPage (single source of truth) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is LucenDEX?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "LucenDEX is a neutral, non-custodial execution layer for XRPL trading. We provide deterministic routing, quoting, and settlement infrastructure that wallets, fintechs, and institutions can integrate to access deep XRPL liquidity without building DEX infrastructure themselves."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is LucenDEX custodial?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. LucenDEX never holds user funds. All transactions are signed client-side by the user's wallet. We provide routing and optional relay services only - your keys remain with you."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is deterministic execution?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Every quote includes a cryptographic hash (QuoteHash) binding the price, route, fees, and TTL. This hash is embedded in the XRPL transaction memo, ensuring the execution matches the quoted terms exactly. No hidden slippage or price manipulation."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Who should use LucenDEX?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "LucenDEX is built for infrastructure partners: wallets wanting to embed trading, fintechs building compliant products, institutions needing best execution, and token issuers requiring XRPL liquidity access."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- Advertise OpenAPI spec (when published) -->
+  <link rel="alternate" type="application/json" href="https://lucendex.com/openapi.json" />
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Cloudflare Turnstile -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+  <!-- Custom Styles -->
+  <style>
+    :root {
+      --primary-color: #0066ff;
+      --secondary-color: #00d4ff;
+      --dark-bg: #0a0e27;
+      --light-bg: #f8f9fa;
+      --text-dark: #1a1a2e;
+      --text-light: #6c757d;
+      --border-color: #e0e6ed;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: var(--text-dark);
+      line-height: 1.6;
+    }
+
+    .navbar {
+      padding: 1rem 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color) !important;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-link {
+      color: var(--text-dark) !important;
+      font-weight: 500;
+      margin: 0 0.5rem;
+      transition: color 0.3s;
+    }
+
+    .nav-link:hover {
+      color: var(--primary-color) !important;
+    }
+
+    .hero-section {
+      background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1f3a 100%);
+      color: #fff;
+      padding: 8rem 0 6rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 50%, rgba(0, 102, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-section h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+      letter-spacing: -1px;
+    }
+
+    .hero-section .lead {
+      font-size: 1.25rem;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 2rem;
+      max-width: 640px;
+    }
+
+    .cta-button {
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .cta-primary {
+      background: var(--primary-color);
+      color: #fff;
+    }
+
+    .cta-primary:hover {
+      background: #0052cc;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 102, 255, 0.3);
+    }
+
+    .cta-secondary {
+      background: transparent;
+      color: #fff;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .cta-secondary:hover {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .problem-section {
+      padding: 5rem 0;
+      background: linear-gradient(to bottom, #fff5f5 0%, #ffffff 100%);
+    }
+
+    .section-tag {
+      display: inline-block;
+      color: var(--primary-color);
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      line-height: 1.3;
+    }
+
+    .stat-box {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #dc3545;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: var(--text-light);
+      font-size: 0.875rem;
+    }
+
+    .features-section {
+      padding: 5rem 0;
+      background: #fff;
+    }
+
+    .feature-list {
+      margin-top: 2rem;
+    }
+
+    .feature-item h4 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .feature-icon-small {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .video-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 600px;
+    }
+
+    .architecture-section {
+      padding: 5rem 0;
+      background: var(--light-bg);
+    }
+
+    .process-step {
+      text-align: left;
+      padding: 1rem 1rem 0;
+    }
+
+    .use-cases-section {
+      padding: 5rem 0;
+      background: #fff;
+    }
+
+    .use-case-card {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+      transition: all 0.3s;
+    }
+
+    .use-case-card:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .use-case-card h4 {
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .faq-section {
+      padding: 5rem 0;
+      background: var(--light-bg);
+    }
+
+    .accordion-button {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .accordion-button:not(.collapsed) {
+      background-color: var(--primary-color);
+      color: #fff;
+    }
+
+    .accordion-body {
+      line-height: 1.8;
+      color: var(--text-light);
+    }
+
+    .cta-section {
+      padding: 5rem 0;
+      background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1f3a 100%);
+      color: #fff;
+      text-align: center;
+    }
+
+    footer {
+      background: var(--dark-bg);
+      color: rgba(255, 255, 255, 0.7);
+      padding: 3rem 0 1.5rem;
+    }
+
+    .footer-link {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-link:hover {
+      color: #fff;
+    }
+
+    .video-section {
+      padding: 3rem 0;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .twitter-embed-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 500px;
+    }
+
+    @media (max-width: 768px) {
+      .hero-section h1 {
+        font-size: 2.5rem;
+      }
+
+      .section-title {
+        font-size: 2rem;
+      }
+
+      .hero-section {
+        padding: 5rem 0 3rem;
+      }
+    }
+  </style>
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="TTNxqh7MOevv+72EsuLdJA" async></script>
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="/">LucenDEX</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+          <li class="nav-item"><a class="nav-link" href="#use-cases">Use Cases</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="docsDropdown" role="button" data-bs-toggle="dropdown">
+              Docs
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/docs">Overview</a></li>
+              <li><a class="dropdown-item" href="/docs/api.html">API Reference</a></li>
+              <li><a class="dropdown-item" href="/docs/indexer.html">Indexer</a></li>
+              <li><a class="dropdown-item" href="/docs/compliance.html">Compliance</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="/infrastructure">Infrastructure</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="#glossary">Glossary</a></li>
+          <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
+          <li class="nav-item"><a class="nav-link" href="#partner">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-12 hero-content">
+          <h1>Deterministic Execution Infrastructure for XRPL</h1>
+          <p class="lead">Non-custodial routing and settlement layer built for wallets, fintechs, and institutions.
+            Zero-trust architecture with cryptographic quote binding.</p>
+          <div class="d-flex gap-3 flex-wrap">
+            <button class="btn cta-button cta-primary" onclick="location.href='#partner'">Partner With Us</button>
+            <button class="btn cta-button cta-secondary"
+              onclick="window.open('https://github.com/2pk03/LucenDEX/blob/main/white-paper.md', '_blank')">Read
+              Whitepaper</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem Statement -->
+  <section class="problem-section">
+    <div class="container">
+      <div class="row mb-5">
+        <div class="col-lg-8">
+          <span class="section-tag">The Problem</span>
+          <h2 class="section-title">Centralized Infrastructure Fails Under Stress</h2>
+          <p class="lead" style="color: var(--text-light);">The October 10, 2025 crash exposed systemic fragilities in
+            centralized exchange infrastructure. When markets moved, discretionary control and opaque risk models
+            created cascading failures.</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="stat-box">
+            <div class="stat-number">$19B</div>
+            <div class="stat-label">Liquidated in 24 Hours</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-box">
+            <div class="stat-number">1.6M</div>
+            <div class="stat-label">Accounts Affected</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-box">
+            <div class="stat-number">$283M</div>
+            <div class="stat-label">In Reimbursements Required</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features & Demo Section -->
+  <section id="features" class="features-section">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+          <span class="section-tag">Core Capabilities</span>
+          <h2 class="section-title">Built for Infrastructure Partners</h2>
+          <p class="lead text-muted mb-4">Enterprise-grade execution layer with deterministic guarantees</p>
+          <div class="feature-list">
+            <div class="feature-item mb-4">
+              <div class="d-flex align-items-start">
+                <div class="feature-icon-small me-3">🔒</div>
+                <div>
+                  <h4 class="mb-2">Non-Custodial</h4>
+                  <p class="text-muted mb-0">Zero custody risk. Backend never sees private keys. All transactions signed
+                    client-side. <a href="/docs/compliance.html" class="text-primary">Learn about compliance →</a></p>
+                </div>
+              </div>
+            </div>
+            <div class="feature-item mb-4">
+              <div class="d-flex align-items-start">
+                <div class="feature-icon-small me-3">⚡</div>
+                <div>
+                  <h4 class="mb-2">Deterministic Execution</h4>
+                  <p class="text-muted mb-0">QuoteHash = blake2b-256(params + fees + TTL). Cryptographically bound
+                    quotes. <a href="/docs/api.html" class="text-primary">View API docs →</a></p>
+                </div>
+              </div>
+            </div>
+            <div class="feature-item mb-4">
+              <div class="d-flex align-items-start">
+                <div class="feature-icon-small me-3">🛡️</div>
+                <div>
+                  <h4 class="mb-2">Circuit Breakers</h4>
+                  <p class="text-muted mb-0">Real-time sanity checks and price anomaly detection.</p>
+                </div>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="d-flex align-items-start">
+                <div class="feature-icon-small me-3">🔄</div>
+                <div>
+                  <h4 class="mb-2">Multi-Route Liquidity</h4>
+                  <p class="text-muted mb-0">Aggregate AMM and orderbook liquidity with path splitting. <a href="/docs/indexer.html" class="text-primary">Indexer architecture →</a></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="video-card text-center">
+            <blockquote class="twitter-tweet" data-media-max-width="560">
+              <p lang="zxx" dir="ltr"><a href="https://t.co/G77s25HXM4">pic.twitter.com/G77s25HXM4</a></p>&mdash;
+              LucenDEX (@lucendex) <a
+                href="https://twitter.com/lucendex/status/1984555508636803144?ref_src=twsrc%5Etfw">November 1, 2025</a>
+            </blockquote>
+            <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+            <noscript>
+              <p class="text-muted mb-0">Tweet preview unavailable without JavaScript. View it on X: <a
+                  href="https://twitter.com/lucendex/status/1984555508636803144" target="_blank"
+                  rel="noopener">twitter.com/lucendex/status/1984555508636803144</a></p>
+            </noscript>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Section -->
+  <section id="architecture" class="architecture-section">
+    <div class="container">
+      <div class="text-center mb-5">
+        <span class="section-tag">How It Works</span>
+        <h2 class="section-title">Zero-Trust Execution Flow</h2>
+      </div>
+      
+      <!-- SVG Diagram -->
+      <div class="row mb-5">
+        <div class="col-12 text-center">
+          <svg viewBox="0 0 980 360" style="width: 100%; height: auto; max-width: 1000px;" role="img"
+            aria-label="Diagram of LucenDEX deterministic execution flow">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+                orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#8aa4d1" />
+              </marker>
+              <style>
+                .svg-label{font:600 12px/1.2 -apple-system,sans-serif;fill:#0a1837}
+                .svg-node{fill:#fff;stroke:#dbe5f1;stroke-width:1.5;rx:12}
+                .svg-node-primary{fill:#eaf2ff;stroke:#b9d2ff}
+                .svg-edge-dash{stroke:#8aa4d1;stroke-dasharray:4 4;stroke-width:1.6;marker-end:url(#arrow)}
+                .svg-edge-solid{stroke:#4b64a6;stroke-width:2.2;marker-end:url(#arrow)}
+                .svg-node-optional{fill:#fff;stroke:#dbe5f1;stroke-width:1.5;rx:10;stroke-dasharray:4 3}
+              </style>
+            </defs>
+            <rect class="svg-node" x="30" y="80" width="210" height="80" rx="12" />
+            <text class="svg-label" x="60" y="125">Client / Wallet</text>
+            <rect class="svg-node-primary" x="270" y="60" width="210" height="120" rx="12" />
+            <text class="svg-label" x="295" y="105">LucenDEX Router</text>
+            <text class="svg-label" x="295" y="130">Quote + Route + Fees →<tspan x="295" dy="16">QuoteHash</tspan></text>
+            <rect class="svg-node" x="520" y="40" width="200" height="80" rx="12" />
+            <text class="svg-label" x="540" y="85">AMMs</text>
+            <rect class="svg-node" x="520" y="130" width="200" height="80" rx="12" />
+            <text class="svg-label" x="540" y="175">Orderbooks</text>
+            <rect class="svg-node" x="760" y="80" width="190" height="80" rx="12" />
+            <text class="svg-label" x="780" y="125">XRPL Ledger</text>
+            <rect class="svg-node" x="270" y="220" width="250" height="90" rx="12" />
+            <text class="svg-label" x="290" y="248">
+              <tspan x="290" dy="0">Client signs &amp; submits Memo:</tspan>
+              <tspan x="290" dy="18">• QuoteHash</tspan>
+              <tspan x="290" dy="18">• LastLedgerSequence</tspan>
+              <tspan x="290" dy="18">Use DeliverMin for protection</tspan>
+            </text>
+            <rect class="svg-node-optional" x="600" y="230" width="130" height="60" rx="10"></rect>
+            <text class="svg-label" x="610" y="255">
+              <tspan x="610" dy="0">Partner Relay</tspan>
+              <tspan x="610" dy="16">(optional)</tspan>
+            </text>
+            <line class="svg-edge-dash" x1="240" y1="120" x2="270" y2="120"></line>
+            <line class="svg-edge-dash" x1="270" y1="140" x2="240" y2="140"></line>
+            <line class="svg-edge-dash" x1="480" y1="100" x2="520" y2="80"></line>
+            <line class="svg-edge-dash" x1="480" y1="120" x2="520" y2="170"></line>
+            <line class="svg-edge-solid" x1="240" y1="160" x2="270" y2="265"></line>
+            <line class="svg-edge-solid" x1="520" y1="260" x2="600" y2="260"></line>
+            <line class="svg-edge-solid" x1="730" y1="260" x2="760" y2="120"></line>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 2x2 Grid Steps -->
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="p-4" style="background: #fff; border-radius: 12px; border: 2px solid var(--border-color); height: 100%;">
+            <div class="d-flex align-items-center mb-3">
+              <div style="width: 40px; height: 40px; background: var(--primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.25rem; flex-shrink: 0; margin-right: 1rem;">1</div>
+              <h4 style="margin: 0; color: var(--primary-color);">Request Quote</h4>
+            </div>
+            <p class="text-muted mb-0">Client requests best route for token pair + amount. Router computes optimal path across AMM and orderbook liquidity sources.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-4" style="background: #fff; border-radius: 12px; border: 2px solid var(--border-color); height: 100%;">
+            <div class="d-flex align-items-center mb-3">
+              <div style="width: 40px; height: 40px; background: var(--primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.25rem; flex-shrink: 0; margin-right: 1rem;">2</div>
+              <h4 style="margin: 0; color: var(--primary-color);">Receive QuoteHash</h4>
+            </div>
+            <p class="text-muted mb-0">Router returns route, price, fees, and cryptographic QuoteHash with TTL (LastLedgerSequence). Quote binding enforced cryptographically.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-4" style="background: #fff; border-radius: 12px; border: 2px solid var(--border-color); height: 100%;">
+            <div class="d-flex align-items-center mb-3">
+              <div style="width: 40px; height: 40px; background: var(--primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.25rem; flex-shrink: 0; margin-right: 1rem;">3</div>
+              <h4 style="margin: 0; color: var(--primary-color);">Sign Transaction</h4>
+            </div>
+            <p class="text-muted mb-0">Client signs transaction with QuoteHash in memo, client-side. Backend never sees private keys. Non-custodial architecture.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-4" style="background: #fff; border-radius: 12px; border: 2px solid var(--border-color); height: 100%;">
+            <div class="d-flex align-items-center mb-3">
+              <div style="width: 40px; height: 40px; background: var(--primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.25rem; flex-shrink: 0; margin-right: 1rem;">4</div>
+              <h4 style="margin: 0; color: var(--primary-color);">Submit & Settle</h4>
+            </div>
+            <p class="text-muted mb-0">Submit directly to rippled or via optional relay. Execution must match QuoteHash or fail. Full XRPL ledger transparency.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-lg-8 mx-auto">
+          <div class="alert alert-info text-center" role="alert">
+            <strong>Security Model:</strong> mTLS for inter-service communication. Ed25519 request signing for partner API. No symmetric keys. <a href="/infrastructure" class="alert-link">Learn more about our infrastructure →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Glossary Section -->
+  <section id="glossary" class="py-5" style="background: #fff;">
+    <div class="container">
+      <div class="text-center mb-5">
+        <span class="section-tag">Technical Glossary</span>
+        <h2 class="section-title">Infrastructure Terms & Concepts</h2>
+        <p class="lead text-muted">Understanding LucenDEX architecture, XRPL DEX primitives, and deterministic execution</p>
+      </div>
+      
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <div class="accordion" id="glossaryAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#term1">QuoteHash</button>
+              </h2>
+              <div id="term1" class="accordion-collapse collapse show" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  <code>blake2b-256</code> cryptographic hash binding quote parameters, route, fees, and TTL. Embedded in XRPL transaction memo to enforce deterministic execution. Tampering detection ensures quoted terms match settlement exactly.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term2">AMM (Automated Market Maker)</button>
+              </h2>
+              <div id="term2" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Native XRPL liquidity pools using constant product formula. Created via <code>AMMCreate</code>, modified via <code>AMMDeposit</code>/<code>AMMWithdraw</code>. Indexed for multi-route aggregation.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term3">TTL (Time To Live)</button>
+              </h2>
+              <div id="term3" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Ledger height limit via <code>LastLedgerSequence</code>. Transaction fails if not validated before TTL. Prevents stale quote execution and provides temporal binding.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term4">Orderbook (CLOB)</button>
+              </h2>
+              <div id="term4" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Central Limit Order Book on XRPL. Created via <code>OfferCreate</code>, cancelled via <code>OfferCancel</code>. Bid/ask offers indexed for price discovery and route optimization.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term5">Deterministic Execution</button>
+              </h2>
+              <div id="term5" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Settlement must match quoted route, price, and fees exactly—or fail. No discretionary control, no hidden slippage. Cryptographically enforced via QuoteHash binding.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term6">Non-Custodial</button>
+              </h2>
+              <div id="term6" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Architecture where backend never holds user funds or private keys. All transactions signed client-side. Zero custody risk—users maintain full control.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term7">Indexer</button>
+              </h2>
+              <div id="term7" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Real-time XRPL ledger monitor indexing DEX-only transactions (AMM + orderbook). Maintains current liquidity state in PostgreSQL. No PII, no payment data—compliance by design.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term8">Router</button>
+              </h2>
+              <div id="term8" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Pathfinding engine computing optimal routes across AMM + orderbook liquidity. Fee injection, path splitting, and deterministic QuoteHash generation. Read-only database access.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term9">mTLS (Mutual TLS)</button>
+              </h2>
+              <div id="term9" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Two-way TLS authentication between services. Both client and server verify each other's certificates. Zero-trust architecture—no implicit network trust.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term10">Ed25519 Signing</button>
+              </h2>
+              <div id="term10" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Elliptic curve signature algorithm for partner API authentication. Public key infrastructure—no symmetric keys. Request signing with replay protection.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term11">Circuit Breaker</button>
+              </h2>
+              <div id="term11" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Safety mechanism detecting price anomalies and abnormal market conditions. Automatic failsafe preventing execution during detected anomalies. Real-time sanity checks.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term12">Gap Detection</button>
+              </h2>
+              <div id="term12" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Indexer restart strategy: backfill small gaps (&lt;1000 ledgers), skip large gaps. Current state rebuilds from live stream. Historical data unnecessary for DEX routing.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term13">Relay (Optional)</button>
+              </h2>
+              <div id="term13" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Service forwarding signed transaction blobs to rippled. No transaction modification—signature validation only. Disabled by default; clients can submit directly to XRPL.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term14">Data Minimization</button>
+              </h2>
+              <div id="term14" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Privacy principle: collect only essential data. LucenDEX indexes DEX transactions only—no PII, no user accounts, no payment data. XRPL addresses remain pseudonymous.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term15">Validator</button>
+              </h2>
+              <div id="term15" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Independent XRPL validator operated by LucenDEX. Domain-verified at <code>lucendex.com/.well-known/xrp-ledger.toml</code>. Provides network security and infrastructure transparency.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#term16">Multi-Route Aggregation</button>
+              </h2>
+              <div id="term16" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                  Liquidity sourcing from multiple venues (AMM + orderbook) with path splitting. Optimizes for best execution across fragmented liquidity sources.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases Section -->
+  <section id="use-cases" class="use-cases-section">
+    <div class="container">
+      <div class="text-center mb-5">
+        <span class="section-tag">Target Customers</span>
+        <h2 class="section-title">Built for Infrastructure Buyers</h2>
+        <p class="lead text-muted">Not competing as a DEX brand. We're infrastructure for partners.</p>
+      </div>
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="use-case-card">
+            <h4>💼 Wallets &amp; Frontends</h4>
+            <p class="text-muted mb-0">Embed deterministic routing instead of building your own DEX infrastructure.
+              White-label API integration. <a href="/docs/api.html" class="text-primary">View API →</a></p>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="use-case-card">
+            <h4>📊 Funds &amp; Market Makers</h4>
+            <p class="text-muted mb-0">Best execution API with deterministic guarantees. Premium quotas and priority
+              routing available.</p>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="use-case-card">
+            <h4>🪙 Token Issuers</h4>
+            <p class="text-muted mb-0">XRPL liquidity access for your token. Multi-route aggregation ensures best prices
+              for your holders.</p>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="use-case-card">
+            <h4>🏦 Custodians &amp; Fintechs</h4>
+            <p class="text-muted mb-0">Non-custodial execution rails for compliant products. Enterprise SLAs and
+              integration support. <a href="/docs/compliance.html" class="text-primary">Compliance docs →</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section (on-page copy matches JSON-LD) -->
+  <section id="faq" class="faq-section">
+    <div class="container">
+      <div class="text-center mb-5">
+        <span class="section-tag">Frequently Asked Questions</span>
+        <h2 class="section-title">Common Questions</h2>
+      </div>
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <div class="accordion" id="faqAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="faq1">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#collapse1">What is LucenDEX?</button>
+              </h2>
+              <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  LucenDEX is a neutral, non-custodial execution layer for XRPL trading. We provide deterministic
+                  routing, quoting, and settlement infrastructure that wallets, fintechs, and institutions can integrate
+                  to access deep XRPL liquidity without building DEX infrastructure themselves.
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="faq2">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#collapse2">Is LucenDEX custodial?</button>
+              </h2>
+              <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  No. LucenDEX never holds user funds. All transactions are signed client-side by the user's wallet. We
+                  provide routing and optional relay services only - your keys remain with you.
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="faq3">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#collapse3">What is deterministic execution?</button>
+              </h2>
+              <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  Every quote includes a cryptographic hash (QuoteHash) binding the price, route, fees, and TTL. This
+                  hash is embedded in the XRPL transaction memo, ensuring the execution matches the quoted terms
+                  exactly. No hidden slippage or price manipulation.
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="faq4">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#collapse4">Who should use LucenDEX?</button>
+              </h2>
+              <div id="collapse4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  LucenDEX is built for infrastructure partners: wallets wanting to embed trading, fintechs building
+                  compliant products, institutions needing best execution, and token issuers requiring XRPL liquidity
+                  access.
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="faq5">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#collapse5">What fees does LucenDEX charge?</button>
+              </h2>
+              <div id="collapse5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  LucenDEX charges a small routing fee in basis points (bps) on executed swaps. Premium API partners
+                  receive higher rate limits and priority routing. Enterprise integration fees available for custom
+                  deployments.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Partner CTA Section -->
+  <section id="partner" class="cta-section">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8 text-center">
+          <h2>Ready to Integrate?</h2>
+          <p class="lead mb-4">Join wallets, fintechs, and institutions building on deterministic infrastructure.</p>
+          <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <button class="btn cta-button cta-primary btn-lg" onclick="openContactModal()">Contact Us</button>
+            <button class="btn cta-button cta-secondary btn-lg"
+              onclick="window.open('https://x.com/LucenDEX', '_blank')">Follow on X</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Modal -->
+  <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h3 class="modal-title" id="contactModalLabel">Get in Touch</h3>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="contactForm" onsubmit="handleContactSubmit(event)">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="name" class="form-label">Name *</label>
+                <input type="text" class="form-control" id="name" name="name" required />
+              </div>
+              <div class="col-md-6">
+                <label for="company" class="form-label">Company</label>
+                <input type="text" class="form-control" id="company" name="company" />
+              </div>
+              <div class="col-12">
+                <label for="email" class="form-label">Email *</label>
+                <input type="email" class="form-control" id="email" name="email" required />
+              </div>
+              <div class="col-12">
+                <label for="interest" class="form-label">I'm interested in *</label>
+                <select class="form-select" id="interest" name="interest" required>
+                  <option value="">Select an option</option>
+                  <option value="wallet">Wallet Integration</option>
+                  <option value="api">API Access</option>
+                  <option value="partnership">Partnership</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+                            <div class="col-12">
+                                <label for="message" class="form-label">Message *</label>
+                                <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+                            </div>
+                            <!-- Honeypot field - humans leave blank -->
+                            <input type="text" name="website" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px" aria-hidden="true">
+                            <div class="col-12">
+                                <!-- Cloudflare Turnstile Widget -->
+                                <div class="cf-turnstile" data-sitekey="0x4AAAAAAB-bRDmVABSpwxl-" data-theme="light"></div>
+                <noscript>
+                  <p class="text-danger mt-2">Please enable JavaScript to complete the security check.</p>
+                </noscript>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
+                  <span id="submitText">Send Message</span>
+                  <span id="submitSpinner" class="d-none">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Sending...
+                  </span>
+                </button>
+              </div>
+              <div id="formMessage" class="col-12"></div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+          <h5 class="text-white mb-2">LucenDEX</h5>
+          <p class="small mb-0">Built on XRPL</p>
+        </div>
+        <div class="col-md-4 text-center mb-3 mb-md-0">
+          <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="https://x.com/LucenDEX" class="footer-link" target="_blank" rel="noopener">X</a>
+            <span style="color: rgba(255,255,255,0.3);">·</span>
+            <a href="https://www.linkedin.com/company/LucenDEX" class="footer-link" target="_blank"
+              rel="noopener">LinkedIn</a>
+            <span style="color: rgba(255,255,255,0.3);">·</span>
+            <a href="/what-is-lucendex" class="footer-link">About LucenDEX</a>
+          </div>
+        </div>
+        <div class="col-md-4 text-center text-md-end">
+          <p class="small mb-0">
+            <a href="https://xrpscan.com/validator/nHURxHJWaupHUKEXqEk1sbuYRUsnUsG7gFdDMQg7qit8QJ7fw8ZG"
+              class="footer-link" target="_blank" rel="noopener">Validator</a>
+            <span style="color: rgba(255,255,255,0.3);"> · </span>
+            <a href="/what-is-lucendex" class="footer-link">What is LucenDEX?</a>
+            <span style="color: rgba(255,255,255,0.3);"> · </span>
+            &copy; 2025 LucenDEX
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Contact Form & Utilities -->
+  <script>
+    // Open contact modal
+    function openContactModal() {
+      const modal = new bootstrap.Modal(document.getElementById('contactModal'));
+      modal.show();
+    }
+
+    // Handle contact form submission
+    async function handleContactSubmit(event) {
+      event.preventDefault();
+
+      const submitBtn = document.getElementById('submitBtn');
+      const submitText = document.getElementById('submitText');
+      const submitSpinner = document.getElementById('submitSpinner');
+      const formMessage = document.getElementById('formMessage');
+
+      // Show loading
+      submitText.classList.add('d-none');
+      submitSpinner.classList.remove('d-none');
+      submitBtn.disabled = true;
+      formMessage.innerHTML = '';
+
+      const formData = new FormData(event.target);
+
+      try {
+        // Submit FormData directly (not JSON)
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          formMessage.innerHTML = '<div class="alert alert-success">✓ ' + (result.message || 'Message sent!') + '</div>';
+          event.target.reset();
+          if (typeof turnstile !== 'undefined' && turnstile.reset) {
+            turnstile.reset();
+          }
+          setTimeout(() => {
+            bootstrap.Modal.getInstance(document.getElementById('contactModal')).hide();
+          }, 2000);
+        } else {
+          formMessage.innerHTML = '<div class="alert alert-danger">Error: ' + (result.error || 'Failed') + '</div>';
+          if (typeof turnstile !== 'undefined' && turnstile.reset) {
+            turnstile.reset();
+          }
+        }
+      } catch (error) {
+        formMessage.innerHTML = '<div class="alert alert-danger">Network error</div>';
+        if (typeof turnstile !== 'undefined' && turnstile.reset) {
+          turnstile.reset();
+        }
+      } finally {
+        submitText.classList.remove('d-none');
+        submitSpinner.classList.add('d-none');
+        submitBtn.disabled = false;
+      }
+    }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (href && href.length > 1) {
+          e.preventDefault();
+          const target = document.querySelector(href);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      });
+    });
+  </script>
+  <script>
+    // if a link starts with "/#...", let the browser navigate (will scroll on the homepage)
+    // on the homepage itself, smooth-scroll to the anchor
+    document.addEventListener('click', function (e) {
+      const a = e.target.closest('a[href^="/#"]');
+      if (!a) return;
+      if (location.pathname === '/' || location.pathname === '/index.html') {
+        e.preventDefault();
+        const id = a.getAttribute('href').slice(2);
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  </script>
+</body>
+
+</html>

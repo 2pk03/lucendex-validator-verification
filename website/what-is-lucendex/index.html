@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>What is LucenDEX? — Neutral, Non‑Custodial XRPL Execution</title>
+  <meta name="description"
+    content="LucenDEX is a neutral, non‑custodial execution layer for XRPL trading. Deterministic routing, cryptographic QuoteHash binding, and multi‑route liquidity for wallets, fintechs, and institutions." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://lucendex.com/what-is-lucendex" />
+  <link rel="about" href="https://lucendex.com/what-is-lucendex" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://lucendex.com/what-is-lucendex" />
+  <meta property="og:title" content="What is LucenDEX? — Neutral, Non‑Custodial XRPL Execution" />
+  <meta property="og:description"
+    content="Deterministic routing and settlement on XRPL with cryptographic QuoteHash binding and multi‑route liquidity aggregation." />
+  <meta property="og:image" content="https://lucendex.com/assets/og-image.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://lucendex.com/what-is-lucendex" />
+  <meta name="twitter:title" content="What is LucenDEX? — Neutral, Non‑Custodial XRPL Execution" />
+  <meta name="twitter:description"
+    content="Deterministic routing and settlement on XRPL with cryptographic QuoteHash binding and multi‑route liquidity aggregation." />
+  <meta name="twitter:image" content="https://lucendex.com/assets/twitter-image.png" />
+
+  <!-- JSON-LD: AboutPage + Breadcrumbs -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "name": "What is LucenDEX?",
+    "description": "LucenDEX is a neutral, non‑custodial execution layer for XRPL trading with deterministic routing, cryptographic QuoteHash binding, and multi‑route liquidity.",
+    "url": "https://lucendex.com/what-is-lucendex",
+    "mainEntity": {
+      "@type": "Organization",
+      "name": "LucenDEX",
+      "url": "https://lucendex.com/"
+    },
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://lucendex.com/"},
+        {"@type": "ListItem", "position": 2, "name": "What is LucenDEX?", "item": "https://lucendex.com/what-is-lucendex"}
+      ]
+    }
+  }
+  </script>
+
+  <!-- Bootstrap 5 CSS (re-use site baseline) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <style>
+    :root {
+      --primary-color: #0066ff;
+      --secondary-color: #00d4ff;
+      --dark-bg: #0a0e27;
+      --light-bg: #f8f9fa;
+      --text-dark: #1a1a2e;
+      --text-light: #6c757d;
+      --border-color: #e0e6ed;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: var(--text-dark);
+      line-height: 1.6;
+    }
+
+    .navbar {
+      padding: 1rem 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color) !important;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-link {
+      color: var(--text-dark) !important;
+      font-weight: 500;
+      margin: 0 0.5rem;
+    }
+
+    .nav-link:hover {
+      color: var(--primary-color) !important;
+    }
+
+    .hero-min {
+      background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1f3a 100%);
+      color: #fff;
+      padding: 5rem 0 4rem;
+      position: relative;
+      /* creates a stacking context */
+      overflow: hidden;
+    }
+
+    .hero-min::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(1200px 600px at 20% 50%, rgba(0, 102, 255, .12), transparent),
+        radial-gradient(800px 400px at 80% 80%, rgba(0, 212, 255, .12), transparent);
+      pointer-events: none !important;
+      z-index: 0 !important;
+    }
+
+    .hero-min h1,
+    .hero-min .lead,
+    .hero-min .btn,
+    .hero-min .cta-group {
+      position: relative;
+      z-index: 2;
+    }
+
+    .section {
+      padding: 4rem 0;
+    }
+
+    .kicker {
+      color: var(--primary-color);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: .85rem;
+    }
+
+    .prose p {
+      color: var(--text-dark);
+    }
+
+    .prose .muted {
+      color: var(--text-light);
+    }
+
+    .card-soft {
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .06);
+    }
+
+    .badge-chip {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: #fff;
+      border-radius: 999px;
+      padding: .4rem .75rem;
+      font-weight: 600;
+      font-size: .8rem;
+    }
+
+    .svg-diagram {
+      width: 100%;
+      height: auto;
+      max-width: 920px;
+    }
+
+    .svg-label {
+      font: 600 12px/1.2 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      fill: #0a1837;
+    }
+
+    .svg-node {
+      fill: #ffffff;
+      stroke: #dbe5f1;
+      stroke-width: 1.5;
+      rx: 12;
+    }
+
+    .svg-node-primary {
+      fill: #eaf2ff;
+      stroke: #b9d2ff;
+    }
+
+    .svg-edge {
+      stroke: #8aa4d1;
+      stroke-dasharray: 4 4;
+      stroke-width: 1.6;
+      marker-end: url(#arrow);
+    }
+
+    .svg-edge-dash {
+      stroke: #8aa4d1;
+      stroke-dasharray: 4 4;
+      stroke-width: 1.6;
+      marker-end: url(#arrow);
+    }
+
+    .svg-edge-solid {
+      stroke: #4b64a6;
+      stroke-width: 2.2;
+      marker-end: url(#arrow);
+    }
+
+    .svg-edge-dash {
+      stroke: #8aa4d1;
+      stroke-dasharray: 4 4;
+      stroke-width: 1.6;
+      marker-end: url(#arrow);
+    }
+
+    .svg-edge-solid {
+      stroke: #4b64a6;
+      stroke-width: 2.2;
+      marker-end: url(#arrow);
+    }
+
+    .svg-node-optional {
+      fill: #fff;
+      stroke: #dbe5f1;
+      stroke-width: 1.5;
+      rx: 10;
+      stroke-dasharray: 4 3;
+    }
+
+
+    .list-check li {
+      margin-bottom: .6rem;
+    }
+
+    .list-check li::marker {
+      content: "✔ ";
+      color: #198754;
+      font-weight: 700;
+    }
+
+    .footer {
+      background: var(--dark-bg);
+      color: rgba(255, 255, 255, 0.75);
+      padding: 2.5rem 0;
+    }
+
+    .footer a {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .hero-min {
+        padding: 3.5rem 0 3rem;
+      }
+    }
+  </style>
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="TTNxqh7MOevv+72EsuLdJA" async></script>
+</head>
+
+<body>
+  <!-- NAV -->
+  <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="/">LucenDEX</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/#features">Features</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#use-cases">Use Cases</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="docsDropdown" role="button" data-bs-toggle="dropdown">
+              Docs
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/docs">Overview</a></li>
+              <li><a class="dropdown-item" href="/docs/api.html">API Reference</a></li>
+              <li><a class="dropdown-item" href="/docs/indexer.html">Indexer</a></li>
+              <li><a class="dropdown-item" href="/docs/compliance.html">Compliance</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="/infrastructure">Infrastructure</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="/#glossary">Glossary</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#faq">FAQ</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#partner">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- HERO -->
+  <header class="hero-min">
+    <div class="container">
+      <span class="kicker">About</span>
+      <h1 class="display-5 mt-2 mb-3">What is LucenDEX?</h1>
+      <p class="lead">LucenDEX is a neutral, non‑custodial execution layer for XRPL trading. We provide deterministic
+        routing, quoting, and on‑chain settlement so wallets, fintechs, and institutions can access deep XRPL liquidity
+        without building DEX infrastructure themselves.</p>
+      <div class="d-flex gap-3 mt-3 flex-wrap cta-group">
+        <a class="btn btn-primary" href="/#partner">Talk to Us</a>
+        <a class="btn btn-outline-light" href="https://github.com/2pk03/LucenDEX/blob/main/white-paper.md"
+          target="_blank" rel="noopener">Read Whitepaper</a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- QUICK FACTS -->
+  <section class="section">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="p-4 card-soft h-100">
+            <span class="badge-chip">Non‑Custodial</span>
+            <h3 class="h5 mt-3">You hold the keys</h3>
+            <p class="mb-0 muted">All transactions are client‑signed; our backend never sees private keys. Optional
+              relays, zero custody risk.</p>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="p-4 card-soft h-100">
+            <span class="badge-chip">Deterministic</span>
+            <h3 class="h5 mt-3">Cryptographic QuoteHash</h3>
+            <p class="mb-0 muted">blake2b‑256 binds route, price, fees, and TTL; QuoteHash is embedded in the XRPL memo
+              to enforce execution fidelity.</p>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="p-4 card-soft h-100">
+            <span class="badge-chip">Best Execution</span>
+            <h3 class="h5 mt-3">Multi‑route aggregation</h3>
+            <p class="mb-0 muted">Aggregates AMM + orderbook liquidity with path splitting and circuit breakers to avoid
+              anomalies.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INFOGRAPHIC: Deterministic Flow (inline SVG) -->
+  <section class="section" aria-labelledby="flow-title">
+    <div class="container">
+      <div class="text-center mb-4">
+        <span class="kicker">How It Works</span>
+        <h2 id="flow-title" class="h2 mt-2">Deterministic Execution Flow</h2>
+        <p class="muted">From quote → hash → sign → settle, with verifiable binding on‑chain.</p>
+      </div>
+
+      <div class="d-flex justify-content-center">
+        <svg class="svg-diagram" viewBox="0 0 980 360" role="img"
+          aria-label="Diagram of LucenDEX deterministic execution flow">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+              orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#8aa4d1" />
+            </marker>
+            <style>
+              .svg-edge-dash {
+                stroke: #8aa4d1;
+                stroke-dasharray: 4 4;
+                stroke-width: 1.6;
+                marker-end: url(#arrow);
+              }
+
+              .svg-edge-solid {
+                stroke: #4b64a6;
+                stroke-width: 2.2;
+                marker-end: url(#arrow);
+              }
+
+              .svg-node-optional {
+                fill: #fff;
+                stroke: #dbe5f1;
+                stroke-width: 1.5;
+                rx: 10;
+                stroke-dasharray: 4 3;
+              }
+            </style>
+          </defs>
+
+          <!-- Nodes -->
+          <rect class="svg-node" x="30" y="80" width="210" height="80" rx="12" />
+          <text class="svg-label" x="60" y="125">Client / Wallet</text>
+
+          <rect class="svg-node-primary" x="270" y="60" width="210" height="120" rx="12" />
+          <text class="svg-label" x="295" y="105">LucenDEX Router</text>
+          <text class="svg-label" x="295" y="130">
+            Quote + Route + Fees →
+            <tspan x="295" dy="16">QuoteHash</tspan>
+          </text>
+
+          <rect class="svg-node" x="520" y="40" width="200" height="80" rx="12" />
+          <text class="svg-label" x="540" y="85">AMMs</text>
+
+          <rect class="svg-node" x="520" y="130" width="200" height="80" rx="12" />
+          <text class="svg-label" x="540" y="175">Orderbooks</text>
+
+          <rect class="svg-node" x="760" y="80" width="190" height="80" rx="12" />
+          <text class="svg-label" x="780" y="125">XRPL Ledger</text>
+
+          <!-- Sign & Submit lane -->
+          <rect class="svg-node" x="270" y="220" width="250" height="90" rx="12" />
+          <text class="svg-label" x="290" y="248">
+            <tspan x="290" dy="0">Client signs &amp; submits Memo:</tspan>
+            <tspan x="290" dy="18">• QuoteHash</tspan>
+            <tspan x="290" dy="18">• LastLedgerSequence</tspan>
+            <tspan x="290" dy="18">Use DeliverMin for protection</tspan>
+          </text>
+
+          <!-- Optional Relay (dotted border, shifted right) -->
+          <rect class="svg-node-optional" x="600" y="230" width="130" height="60" rx="10"></rect>
+          <text class="svg-label" x="610" y="255">
+            <tspan x="610" dy="0">Partner Relay</tspan>
+            <tspan x="610" dy="16">(optional)</tspan>
+          </text>
+
+          <!-- Edges (dashed = read/observe; solid = submit path) -->
+          <!-- Client <-> Router (quote request/response) -->
+          <line class="svg-edge-dash" x1="240" y1="120" x2="270" y2="120"></line> <!-- request -->
+          <line class="svg-edge-dash" x1="270" y1="140" x2="240" y2="140"></line> <!-- quote + QuoteHash -->
+
+          <!-- Router -> Liquidity sources (read-only discovery) -->
+          <line class="svg-edge-dash" x1="480" y1="100" x2="520" y2="80"></line> <!-- to AMMs -->
+          <line class="svg-edge-dash" x1="480" y1="120" x2="520" y2="170"></line> <!-- to Orderbooks -->
+
+          <!-- Client -> Sign box (single line; hits left edge center of sign box) -->
+          <line class="svg-edge-solid" x1="240" y1="160" x2="270" y2="265"></line>
+
+          <!-- Submit path: Sign box -> Relay -> Ledger -->
+          <line class="svg-edge-solid" x1="520" y1="260" x2="600" y2="260"></line> <!-- to relay -->
+          <line class="svg-edge-solid" x1="730" y1="260" x2="760" y2="120"></line> <!-- relay to ledger -->
+        </svg>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-lg-8 mx-auto">
+          <ol class="list-group list-group-numbered">
+            <li class="list-group-item">Client requests a quote for a pair + amount; router computes optimal path across
+              AMM + orderbooks.</li>
+            <li class="list-group-item">Router returns route, price, fees, TTL, and a cryptographic
+              <strong>QuoteHash</strong> (blake2b‑256).
+            </li>
+            <li class="list-group-item">Client signs transaction; <strong>QuoteHash</strong> is embedded in memo.
+              Settlement must match quoted terms.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHO IS IT FOR -->
+  <section class="section" aria-labelledby="fit-title">
+    <div class="container">
+      <div class="row g-4 align-items-stretch">
+        <div class="col-lg-6">
+          <div class="card-soft p-4 h-100">
+            <h2 id="fit-title" class="h4 mb-3">Who is LucenDEX for?</h2>
+            <ul class="list-check ps-3">
+              <li>Wallets &amp; frontends embedding XRPL trading.</li>
+              <li>Funds &amp; market makers needing deterministic best‑execution APIs.</li>
+              <li>Token issuers requiring robust liquidity access on XRPL.</li>
+              <li>Custodians &amp; fintechs building compliant, non‑custodial rails.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card-soft p-4 h-100">
+            <h2 class="h4 mb-3">Security Model</h2>
+            <ul class="list-check ps-3">
+              <li>mTLS between services; no symmetric key sharing.</li>
+              <li>Ed25519 request signing for partner API endpoints.</li>
+              <li>QuoteHash binding; verifiable memo fields.</li>
+              <li>Circuit breakers &amp; anomaly detection on routes.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA to Docs / API -->
+  <section class="section" style="background: var(--light-bg);">
+    <div class="container">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+          <h2 class="h3">Build on deterministic infrastructure</h2>
+          <p class="muted mb-0">Start with examples and a machine‑readable spec. If you need higher rate limits or SLAs,
+            talk to us.</p>
+        </div>
+        <div class="col-lg-5 text-lg-end">
+          <a class="btn btn-primary me-2" href="/docs">View Docs</a>
+          <a class="btn btn-outline-primary" href="/openapi.json">OpenAPI (JSON)</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <strong>LucenDEX</strong> — Built on XRPL
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+          <a href="/">Home</a>
+          <span class="mx-2" style="opacity:.4">·</span>
+          <a href="https://x.com/LucenDEX" target="_blank" rel="noopener">X</a>
+          <span class="mx-2" style="opacity:.4">·</span>
+          <a href="https://www.linkedin.com/company/LucenDEX" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // if a link starts with "/#...", let the browser navigate (will scroll on the homepage)
+    // on the homepage itself, smooth-scroll to the anchor
+    document.addEventListener('click', function (e) {
+      const a = e.target.closest('a[href^="/#"]');
+      if (!a) return;
+      if (location.pathname === '/' || location.pathname === '/index.html') {
+        e.preventDefault();
+        const id = a.getAttribute('href').slice(2);
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  </script>
+
+</body>
+
+</html>

@@ -1,12 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
-# Intelligent Validator Attestation Manager
-# Detects state and either sets up or updates domain verification
+# Validator Attestation Manager
+# Updates xrp-ledger.toml with validator public key
+# Website deployment handled separately via infra/website/website-deploy.sh
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KEYS_DIR="${HOME}/.validator-keys-secure"
-PROJECT_DIR="${SCRIPT_DIR}/lucendex-validator-verification"
+WEBSITE_DIR="${SCRIPT_DIR}/../../website"
 DOMAIN="lucendex.com"
 TOML_URL="https://${DOMAIN}/.well-known/xrp-ledger.toml"
 
@@ -144,21 +145,19 @@ echo '${token}' | ssh -i '${SCRIPT_DIR}/terraform/validator_ssh_key' root@'${ip}
     sleep 30
 }
 
-update_cloudflare_pages() {
-    log_step "Updating xrp-ledger.toml on Cloudflare Pages..."
+update_toml_file() {
+    log_step "Updating xrp-ledger.toml..."
     
-    if [ ! -d "$PROJECT_DIR" ]; then
-        log_error "Cloudflare Pages project not found locally"
-        exit 1
-    fi
+    # Ensure .well-known directory exists
+    mkdir -p "${WEBSITE_DIR}/.well-known"
     
     # Check if we have offline-generated keys with attestation
     if [ -f "${KEYS_DIR}/xrp-ledger.toml" ]; then
         log_info "Using offline-generated xrp-ledger.toml with attestation"
-        cp "${KEYS_DIR}/xrp-ledger.toml" "${PROJECT_DIR}/.well-known/"
+        cp "${KEYS_DIR}/xrp-ledger.toml" "${WEBSITE_DIR}/.well-known/"
     else
         # No offline keys - use current validator public key
-        log_warn "No offline keys - updating with current validator public key"
+        log_warn "No offline keys - generating from current validator public key"
         local ip=$(cd "${SCRIPT_DIR}/terraform" && terraform output -raw validator_ip)
         local pubkey=$(ssh -i "${SCRIPT_DIR}/terraform/validator_ssh_key" root@"${ip}" \
             "grep '^n9' /opt/rippled/rippled.cfg | head -1 | awk '{print \$1}'")
@@ -170,7 +169,7 @@ update_cloudflare_pages() {
         
         log_info "Current validator public key: ${pubkey}"
         
-        cat > "${PROJECT_DIR}/.well-known/xrp-ledger.toml" <<EOF
+        cat > "${WEBSITE_DIR}/.well-known/xrp-ledger.toml" <<EOF
 # Lucendex XRPL Validator Domain Verification
 
 [[VALIDATORS]]
@@ -181,111 +180,8 @@ server_country = "NL"
 EOF
     fi
     
-    # Git commit and push
-    cd "$PROJECT_DIR"
-    git add .well-known/xrp-ledger.toml
-    git commit -m "Update xrp-ledger.toml - $(date +%Y-%m-%d)" || log_warn "No changes to commit"
-    git push
-    
-    log_info "✓ Pushed to GitHub - Cloudflare auto-deploys in ~30 seconds"
-}
-
-setup_cloudflare_pages() {
-    log_step "Setting up Cloudflare Pages for domain verification..."
-    
-    # Create project directory
-    mkdir -p "${PROJECT_DIR}/.well-known"
-    
-    # Check if we have generated keys
-    if [ -f "${KEYS_DIR}/xrp-ledger.toml" ]; then
-        # Use offline-generated toml with attestation
-        cp "${KEYS_DIR}/xrp-ledger.toml" "${PROJECT_DIR}/.well-known/"
-    else
-        # Fallback: get current validator key from server
-        log_warn "No offline keys found - using current validator key"
-        local ip=$(cd "${SCRIPT_DIR}/terraform" && terraform output -raw validator_ip)
-        local pubkey=$(ssh -i "${SCRIPT_DIR}/terraform/validator_ssh_key" root@"${ip}" \
-            "grep '^n9' /opt/rippled/rippled.cfg | head -1 | awk '{print \$1}'")
-        
-        if [ -z "$pubkey" ]; then
-            log_error "Could not retrieve validator public key from server"
-            exit 1
-        fi
-        
-        cat > "${PROJECT_DIR}/.well-known/xrp-ledger.toml" <<EOF
-# Lucendex XRPL Validator Domain Verification
-
-[[VALIDATORS]]
-public_key = "${pubkey}"
-network = "main"
-owner_country = "MT"
-server_country = "NL"
-EOF
-    fi
-    
-    # Create README
-    cat > "${PROJECT_DIR}/README.md" <<EOF
-# Lucendex Validator Verification
-
-XRPL domain verification for Lucendex validator.
-
-**Verification URL:** https://${DOMAIN}/.well-known/xrp-ledger.toml
-EOF
-    
-    # Git init
-    cd "$PROJECT_DIR"
-    git init
-    git add .
-    git commit -m "Initial commit: Lucendex validator domain verification"
-    
-    # GitHub setup - check if saved
-    local envrc_file="${SCRIPT_DIR}/.envrc.cloudflare"
-    local repo_url=""
-    
-    if [ -f "$envrc_file" ]; then
-        source "$envrc_file"
-        repo_url="${GITHUB_REPO_URL:-}"
-    fi
-    
-    if [ -z "$repo_url" ]; then
-        echo ""
-        log_warn "GitHub repository must be PUBLIC for Cloudflare Pages free tier"
-        log_info "Repository: git@github.com:2pk03/lucendex-validator-verification.git"
-        echo ""
-        
-        read -p "Use this repo? (Y/n): " -r
-        if [[ $REPLY =~ ^[Nn]$ ]]; then
-            read -p "Enter repo URL: " repo_url
-        else
-            repo_url="git@github.com:2pk03/lucendex-validator-verification.git"
-        fi
-        
-        # Save to envrc
-        echo "export GITHUB_REPO_URL=\"${repo_url}\"" >> "$envrc_file"
-        log_info "✓ Repo URL saved"
-    else
-        log_info "Using saved repo: ${repo_url}"
-    fi
-    
-    git remote add origin "$repo_url" 2>/dev/null || git remote set-url origin "$repo_url"
-    git branch -M main
-    git push -u origin main
-    
-    # Cloudflare Pages setup
-    echo ""
-    log_step "Cloudflare Pages Configuration"
-    log_info "  1. Open: https://dash.cloudflare.com → Pages"
-    log_info "  2. Create application → Connect to Git"
-    log_info "  3. Select: lucendex-validator-verification"
-    log_info "  4. Build: NONE (leave empty)"
-    log_info "  5. Output: /"
-    log_info "  6. Deploy"
-    log_info "  7. Custom domains → Add: ${DOMAIN}"
-    echo ""
-    
-    read -p "Press Enter when deployed and custom domain configured..."
-    
-    log_info "✓ Cloudflare Pages setup complete"
+    log_info "✓ xrp-ledger.toml updated in ${WEBSITE_DIR}/.well-known/"
+    log_info "Run 'make deploy' in infra/website/ to push to production"
 }
 
 verify_deployment() {
@@ -329,33 +225,24 @@ main() {
     log_info "Lucendex Validator Attestation Manager"
     log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
-    # Check current state
-    if check_domain; then
-        # Domain verification exists
-        if check_attestation; then
-            log_info "Production attestation already configured"
-            read -p "Update anyway? (y/N) " -r
-            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                log_info "No changes made"
-                exit 0
-            fi
-        else
-            log_warn "Upgrading to production attestation..."
-        fi
-        
-        # Update path
-        check_existing_keys
-        update_cloudflare_pages
-        verify_deployment
-    else
-        # Setup path
-        log_info "Initial setup required"
-        check_existing_keys
-        setup_cloudflare_pages
-        verify_deployment
-    fi
+    # Check for validator keys
+    check_existing_keys
     
-    show_summary
+    # Update TOML file
+    update_toml_file
+    
+    # Show summary
+    echo ""
+    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    log_info "✓ Validator xrp-ledger.toml updated"
+    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    log_info "Next steps:"
+    log_info "  1. cd infra/website"
+    log_info "  2. make deploy"
+    echo ""
+    log_info "Verification URL: $TOML_URL"
+    echo ""
 }
 
 main "$@"

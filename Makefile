@@ -435,6 +435,15 @@ d-sync-history: data-sync-status-history
 b-test: backend-test
 b-build: backend-build
 
+# Website Operations
+website-deploy:
+	@echo "$(GREEN)Deploying website to lucendex.com...$(NC)"
+	@cd infra/website && make deploy
+
+website-update-toml:
+	@echo "$(GREEN)Updating validator xrp-ledger.toml...$(NC)"
+	@cd infra/website && make update-toml
+
 # Update XRPL rippled version across all nodes
 update-xrpl:
 	@echo "$(GREEN)Updating rippled to latest release...$(NC)"

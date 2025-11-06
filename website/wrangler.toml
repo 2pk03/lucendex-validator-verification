@@ -1,0 +1,10 @@
+# Cloudflare Pages Configuration
+name = "lucendex-validator-verification"
+compatibility_date = "2025-10-29"
+
+[assets]
+directory = "."
+
+# Email Worker binding for sending (not receiving)
+[[send_email]]
+name = "EMAIL"

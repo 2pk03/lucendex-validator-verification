@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Compliance Documentation | LucenDEX</title>
+  <meta name="description"
+    content="LucenDEX compliance documentation: KYC-free infrastructure model, data minimization, AML considerations, and regulatory positioning." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://lucendex.com/docs/compliance.html" />
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <style>
+    :root {
+      --primary-color: #0066ff;
+      --dark-bg: #0a0e27;
+      --light-bg: #f8f9fa;
+      --text-dark: #1a1a2e;
+      --text-light: #6c757d;
+      --border-color: #e0e6ed;
+      --sidebar-width: 250px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: var(--text-dark);
+      line-height: 1.6;
+    }
+
+    .navbar {
+      padding: 1rem 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color) !important;
+    }
+
+    .nav-link {
+      color: var(--text-dark) !important;
+      font-weight: 500;
+      margin: 0 0.5rem;
+    }
+
+    .nav-link:hover {
+      color: var(--primary-color) !important;
+    }
+
+    .docs-container {
+      display: flex;
+      min-height: calc(100vh - 200px);
+    }
+
+    .docs-sidebar {
+      width: var(--sidebar-width);
+      background: var(--light-bg);
+      border-right: 1px solid var(--border-color);
+      padding: 2rem 1.5rem;
+      position: sticky;
+      top: 80px;
+      height: fit-content;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+    }
+
+    .docs-sidebar h6 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-light);
+      margin-bottom: 0.75rem;
+      font-weight: 700;
+    }
+
+    .docs-sidebar-nav {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 2rem 0;
+    }
+
+    .docs-sidebar-nav li {
+      margin-bottom: 0.5rem;
+    }
+
+    .docs-sidebar-nav a {
+      color: var(--text-dark);
+      text-decoration: none;
+      display: block;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+    }
+
+    .docs-sidebar-nav a:hover {
+      background: rgba(0, 102, 255, 0.1);
+      color: var(--primary-color);
+    }
+
+    .docs-sidebar-nav a.active {
+      background: var(--primary-color);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .docs-content {
+      flex: 1;
+      padding: 3rem 3rem 3rem 4rem;
+      max-width: 900px;
+    }
+
+    .docs-content h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .docs-content h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .docs-content h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .lead {
+      font-size: 1.15rem;
+      color: var(--text-light);
+      margin-bottom: 2rem;
+    }
+
+    code {
+      background: #f1f3f5;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: #c7254e;
+    }
+
+    .alert {
+      border-radius: 8px;
+      border-left: 4px solid;
+    }
+
+    .footer {
+      background: var(--dark-bg);
+      color: rgba(255, 255, 255, 0.75);
+      padding: 2.5rem 0;
+      margin-top: 3rem;
+    }
+
+    .footer a {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      color: #fff;
+    }
+
+    @media (max-width: 992px) {
+      .docs-container {
+        flex-direction: column;
+      }
+
+      .docs-sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+        max-height: none;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .docs-content {
+        padding: 2rem 1.5rem;
+      }
+    }
+  </style>
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="TTNxqh7MOevv+72EsuLdJA" async></script>
+</head>
+
+<body>
+  <!-- NAV -->
+  <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+    <div class="container-fluid px-4">
+      <a class="navbar-brand" href="/">LucenDEX</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/infrastructure">Infrastructure</a></li>
+          <li class="nav-item"><a class="nav-link" href="/what-is-lucendex">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#glossary">Glossary</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#partner">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- DOCS CONTAINER -->
+  <div class="docs-container">
+    <!-- SIDEBAR -->
+    <aside class="docs-sidebar">
+      <h6>Documentation</h6>
+      <ul class="docs-sidebar-nav">
+        <li><a href="/docs">Overview</a></li>
+        <li><a href="/docs/api.html">API Reference</a></li>
+        <li><a href="/docs/indexer.html">Indexer</a></li>
+        <li><a href="/docs/compliance.html" class="active">Compliance</a></li>
+      </ul>
+
+      <h6>Resources</h6>
+      <ul class="docs-sidebar-nav">
+        <li><a href="/openapi.json" target="_blank">OpenAPI Spec</a></li>
+        <li><a href="https://github.com/2pk03/LucenDEX" target="_blank">GitHub</a></li>
+      </ul>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="docs-content">
+      <h1>Compliance & Regulatory</h1>
+      <p class="lead">LucenDEX operates as neutral infrastructure—not a broker, custodian, or money transmitter. This document explains our KYC-free model and regulatory positioning.</p>
+
+      <h2>Infrastructure Provider Model</h2>
+      <p>LucenDEX provides <strong>infrastructure services</strong>, similar to AWS, Cloudflare, or Infura. We don't:</p>
+      <ul>
+        <li>Hold or custody user funds</li>
+        <li>Facilitate trades on behalf of users</li>
+        <li>Have discretionary control over execution</li>
+        <li>Maintain user accounts or balances</li>
+      </ul>
+
+      <p>Partners integrate our APIs to access XRPL liquidity. <strong>They</strong> manage user relationships, compliance policies, and regulatory obligations for their jurisdiction.</p>
+
+      <h2>Why No KYC Required</h2>
+      <h3>1. Non-Custodial Architecture</h3>
+      <p>We never hold user funds. All transactions are signed client-side. We provide routing and optional relay services—your keys remain with you.</p>
+
+      <h3>2. Data Minimization</h3>
+      <p>We only store public blockchain data necessary for DEX routing:</p>
+      <ul>
+        <li>AMM pool reserves (from <code>AMMCreate</code>, <code>AMMDeposit</code>, <code>AMMWithdraw</code>)</li>
+        <li>Active orderbook offers (from <code>OfferCreate</code>, <code>OfferCancel</code>)</li>
+        <li>Ledger checkpoints for continuity</li>
+      </ul>
+
+      <p><strong>Not stored</strong>: Payments, account balances, user identities, IP addresses, or any PII.</p>
+
+      <h3>3. XRPL Addresses ≠ User Identities</h3>
+      <p>XRPL addresses are pseudonymous. We index public DEX transactions without linking them to real-world identities. This is analogous to running a blockchain explorer—public data aggregation, not financial services.</p>
+
+      <div class="alert alert-info">
+        <strong>Precedent:</strong> Block explorers (Etherscan, XRPScan) index blockchain data without KYC. LucenDEX indexes a <em>subset</em> of XRPL data (DEX only) for routing purposes.
+      </div>
+
+      <h2>AML Considerations</h2>
+      <p>While LucenDEX itself is KYC-free, partners may implement:</p>
+      <ul>
+        <li><strong>Geofencing</strong>: Block sanctioned jurisdictions at API edge</li>
+        <li><strong>Sanctions screening</strong>: Check XRPL addresses against OFAC lists</li>
+        <li><strong>Transaction monitoring</strong>: Partners can log and analyze usage patterns</li>
+      </ul>
+
+      <p>We provide the infrastructure; partners implement compliance policies appropriate for their jurisdiction and business model.</p>
+
+      <h2>Deterministic Execution (No Discretion)</h2>
+      <p>QuoteHash binding ensures we have <strong>zero discretionary control</strong> over execution:</p>
+
+      <pre><code>QuoteHash = blake2b-256(
+  sorted_params +
+  route +
+  fees +
+  TTL
+)</code></pre>
+
+      <p>The QuoteHash is embedded in the XRPL transaction memo. Execution must match the quoted terms exactly or fail. No slippage manipulation, no execution discretion.</p>
+
+      <div class="alert alert-warning">
+        <strong>Regulatory Implication:</strong> Deterministic execution removes discretionary control—a key factor in broker/dealer classification. We compute routes algorithmically; users sign and submit transactions themselves.
+      </div>
+
+      <h2>Data Retention & Privacy</h2>
+      <h3>What We Store</h3>
+      <ul>
+        <li><strong>AMM Pools</strong>: Current reserves only (no history)</li>
+        <li><strong>Orderbook</strong>: Active offers only (cancelled offers marked, not deleted)</li>
+        <li><strong>Checkpoints</strong>: Ledger index, hash, timestamp (audit trail)</li>
+        <li><strong>Usage Metrics</strong>: Partner API usage (keyed by partner_id, not user identifiers)</li>
+      </ul>
+
+      <h3>What We Don't Store</h3>
+      <ul>
+        <li>User accounts or profiles</li>
+        <li>Payment transactions</li>
+        <li>Account balances</li>
+        <li>IP addresses or session data</li>
+        <li>Any PII (names, emails, KYC documents)</li>
+      </ul>
+
+      <h2>Partner Compliance Obligations</h2>
+      <p>Partners integrating LucenDEX APIs should consider:</p>
+
+      <h3>If You're a Wallet</h3>
+      <ul>
+        <li>You remain non-custodial (transactions signed client-side)</li>
+        <li>Consider geofencing for sanctioned jurisdictions</li>
+        <li>Determine if your model requires KYC based on local regulations</li>
+      </ul>
+
+      <h3>If You're a Fintech or Institution</h3>
+      <ul>
+        <li>Apply your existing KYC/AML policies to users</li>
+        <li>Use our infrastructure for execution rails</li>
+        <li>Log and monitor usage for compliance reporting</li>
+      </ul>
+
+      <h3>If You're a Custodian</h3>
+      <ul>
+        <li>You maintain custody controls and compliance</li>
+        <li>Use LucenDEX for deterministic best execution</li>
+        <li>Audit QuoteHash binding for verifiable execution</li>
+      </ul>
+
+      <h2>Regulatory Positioning</h2>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>LucenDEX Answer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Do you custody funds?</td>
+            <td><strong>No</strong> - Non-custodial architecture</td>
+          </tr>
+          <tr>
+            <td>Do you facilitate trades?</td>
+            <td><strong>No</strong> - Provide infrastructure only</td>
+          </tr>
+          <tr>
+            <td>Do you have execution discretion?</td>
+            <td><strong>No</strong> - QuoteHash binding, deterministic</td>
+          </tr>
+          <tr>
+            <td>Do you store PII?</td>
+            <td><strong>No</strong> - DEX data only, data minimization</td>
+          </tr>
+          <tr>
+            <td>Do you link addresses to identities?</td>
+            <td><strong>No</strong> - Pseudonymous XRPL addresses</td>
+          </tr>
+          <tr>
+            <td>Are you a broker/dealer?</td>
+            <td><strong>No</strong> - Infrastructure provider model</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="alert alert-success">
+        <strong>Summary:</strong> LucenDEX operates as neutral infrastructure for XRPL DEX access. We provide deterministic routing and execution rails without custody, discretion, or user account management.
+      </div>
+
+      <h2>Transparency & Auditability</h2>
+      <p>Infrastructure transparency is core to our compliance strategy:</p>
+      <ul>
+        <li><strong>Validator</strong>: Publicly verifiable at <code>lucendex.com/.well-known/xrp-ledger.toml</code></li>
+        <li><strong>QuoteHash</strong>: Cryptographic binding enables third-party verification</li>
+        <li><strong>Open Architecture</strong>: Partners can audit our deterministic execution model</li>
+        <li><strong>Blockchain Transparency</strong>: All executions visible on XRPL ledger</li>
+      </ul>
+
+      <h2>Contact for Compliance Questions</h2>
+      <p>If you have questions about our compliance model or need regulatory documentation for your jurisdiction, <a href="/#partner">contact us</a>.</p>
+    </main>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <strong>LucenDEX</strong> — Built on XRPL
+        </div>
+        <div class="col-md-6 text-md-end">
+          <a href="/">Home</a>
+          <span class="mx-2" style="opacity:.4">·</span>
+          <a href="/docs">Docs</a>
+          <span class="mx-2" style="opacity:.4">·</span>
+          <a href="https://x.com/LucenDEX" target="_blank" rel="noopener">X</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

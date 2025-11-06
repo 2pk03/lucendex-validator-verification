@@ -1,0 +1,300 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LucenDEX API (DRAFT)",
+    "version": "1.0.0-draft",
+    "description": "⚠️ DRAFT - Under private validation. Deterministic execution infrastructure for XRPL trading. Non‑custodial quote → sign → submit flow with cryptographic QuoteHash binding.",
+    "contact": {
+      "name": "LucenDEX",
+      "url": "https://lucendex.com",
+      "email": "partners@lucendex.com"
+    }
+  },
+  "servers": [
+    { "url": "https://api.lucendex.com", "description": "Production" }
+  ],
+  "tags": [
+    { "name": "system", "description": "Operational endpoints" },
+    { "name": "routing", "description": "Discovery and quotes" },
+    { "name": "settlement", "description": "Submit signed transactions" }
+  ],
+  "paths": {
+    "/v1/health": {
+      "get": {
+        "tags": ["system"],
+        "summary": "Health check",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" },
+                "examples": {
+                  "ok": { "value": { "status": "ok", "uptime_s": 123456, "version": "1.0.0" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/v1/routes": {
+      "get": {
+        "tags": ["routing"],
+        "summary": "List supported assets, pairs, and venues",
+        "operationId": "listRoutes",
+        "parameters": [
+          {
+            "name": "base",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by base asset symbol (e.g., XRP)"
+          },
+          {
+            "name": "quote",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by quote asset symbol (e.g., USDt)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Supported routes returned",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RoutesResponse" },
+                "examples": {
+                  "pairs": {
+                    "value": {
+                      "assets": ["XRP", "USDt", "EUR", "BTC"],
+                      "pairs": [
+                        { "base": "XRP", "quote": "USDt" },
+                        { "base": "XRP", "quote": "EUR" }
+                      ],
+                      "venues": ["amm", "orderbook"],
+                      "limits": { "max_route_legs": 3 }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/v1/quote": {
+      "post": {
+        "tags": ["routing"],
+        "summary": "Request deterministic quote",
+        "operationId": "getQuote",
+        "description": "Computes best route and returns price, fees, TTL (LastLedgerSequence), and a cryptographic QuoteHash binding all parameters.",
+        "security": [{ "apiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/QuoteRequest" },
+              "examples": {
+                "buy_usdt_with_xrp": {
+                  "value": {
+                    "base": "XRP",
+                    "quote": "USDt",
+                    "side": "buy",
+                    "amount": 100,
+                    "client_id": "demo-wallet-123",
+                    "slippage_bps": 20
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Deterministic quote returned successfully",
+            "headers": {
+              "X-Quote-Hash": {
+                "description": "QuoteHash duplicate for convenience",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/QuoteResponse" },
+                "examples": {
+                  "ok": {
+                    "value": {
+                      "route": [
+                        { "venue": "amm", "pair": { "base": "XRP", "quote": "USDt" }, "fraction": 1.0 }
+                      ],
+                      "price": 0.52,
+                      "fee_bps": 10,
+                      "ttl": 12345678,
+                      "quote_hash": "b2b256:7f7a...c9e0",
+                      "expires_at": "2025-11-02T11:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid request", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "429": { "description": "Rate limited", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+
+    "/v1/submit": {
+      "post": {
+        "tags": ["settlement"],
+        "summary": "Submit signed XRPL transaction",
+        "operationId": "submitTx",
+        "description": "Submits a signed transaction embedding the QuoteHash in memo. Optionally relays to XRPL. The backend does not hold keys.",
+        "security": [{ "apiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SubmitRequest" },
+              "examples": {
+                "submit": {
+                  "value": {
+                    "tx_blob": "1200032280000000240000000B201B00BC614E68400000000000000A732102...",
+                    "quote_hash": "b2b256:7f7a...c9e0",
+                    "relay": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction accepted or relayed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SubmitResponse" },
+                "examples": {
+                  "accepted": {
+                    "value": {
+                      "status": "submitted",
+                      "hash": "3F5A6C...9B1D",
+                      "ledger_index": 12345679
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid transaction or mismatched QuoteHash", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "422": { "description": "Quote expired (TTL exceeded)", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    }
+  },
+
+  "components": {
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    },
+    "schemas": {
+      "Asset": {
+        "type": "string",
+        "examples": ["XRP", "USDt", "EUR", "BTC"]
+      },
+      "Pair": {
+        "type": "object",
+        "required": ["base", "quote"],
+        "properties": {
+          "base": { "$ref": "#/components/schemas/Asset" },
+          "quote": { "$ref": "#/components/schemas/Asset" }
+        }
+      },
+      "RouteLeg": {
+        "type": "object",
+        "required": ["venue", "pair", "fraction"],
+        "properties": {
+          "venue": { "type": "string", "enum": ["amm", "orderbook"] },
+          "pair": { "$ref": "#/components/schemas/Pair" },
+          "fraction": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      },
+      "QuoteRequest": {
+        "type": "object",
+        "required": ["base", "quote", "amount", "side"],
+        "properties": {
+          "base": { "$ref": "#/components/schemas/Asset" },
+          "quote": { "$ref": "#/components/schemas/Asset" },
+          "side": { "type": "string", "enum": ["buy", "sell"] },
+          "amount": { "type": "number", "exclusiveMinimum": 0 },
+          "client_id": { "type": "string", "description": "Opaque client identifier for tracing" },
+          "slippage_bps": { "type": "integer", "minimum": 0, "maximum": 10000, "description": "Client‑preferred max slippage; used for circuit breakers" }
+        }
+      },
+      "QuoteResponse": {
+        "type": "object",
+        "required": ["route", "price", "fee_bps", "ttl", "quote_hash"],
+        "properties": {
+          "route": { "type": "array", "items": { "$ref": "#/components/schemas/RouteLeg" } },
+          "price": { "type": "number" },
+          "fee_bps": { "type": "number" },
+          "ttl": { "type": "integer", "description": "XRPL LastLedgerSequence or expiry ledger index" },
+          "quote_hash": { "type": "string", "description": "blake2b‑256 hash binding params, route, fees, TTL" },
+          "expires_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SubmitRequest": {
+        "type": "object",
+        "required": ["tx_blob", "quote_hash"],
+        "properties": {
+          "tx_blob": { "type": "string", "description": "Signed XRPL transaction blob (hex)" },
+          "quote_hash": { "type": "string", "description": "QuoteHash returned by /v1/quote; must match memo" },
+          "relay": { "type": "boolean", "default": true }
+        }
+      },
+      "SubmitResponse": {
+        "type": "object",
+        "required": ["status", "hash"],
+        "properties": {
+          "status": { "type": "string", "enum": ["submitted", "queued", "failed"] },
+          "hash": { "type": "string", "description": "XRPL transaction hash" },
+          "ledger_index": { "type": "integer" }
+        }
+      },
+      "RoutesResponse": {
+        "type": "object",
+        "properties": {
+          "assets": { "type": "array", "items": { "$ref": "#/components/schemas/Asset" } },
+          "pairs": { "type": "array", "items": { "$ref": "#/components/schemas/Pair" } },
+          "venues": { "type": "array", "items": { "type": "string", "enum": ["amm", "orderbook"] } },
+          "limits": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "ok" },
+          "uptime_s": { "type": "integer" },
+          "version": { "type": "string" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error", "message"],
+        "properties": {
+          "error": { "type": "string" },
+          "message": { "type": "string" },
+          "details": { "type": "object", "additionalProperties": true }
+        }
+      }
+    }
+  }
+}
