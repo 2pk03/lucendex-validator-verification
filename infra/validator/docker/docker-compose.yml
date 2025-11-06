@@ -24,12 +24,12 @@ services:
       - SETUID
     
     # Resource limits - OPTIMIZED for 8-core/24GB RAM VM
-    # Headroom for validation spikes (can reach 10GB during peer churn)
-    # Leaves 3GB for OS
+    # Reduced to 18g after OOM kill at 21g
+    # Leaves 6GB for OS + zram swap
     deploy:
       resources:
         limits:
-          memory: 21g
+          memory: 18g
           cpus: '6.0'
         reservations:
           memory: 12g
