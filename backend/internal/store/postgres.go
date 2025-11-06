@@ -264,3 +264,33 @@ func (s *Store) GetLastCheckpoint(ctx context.Context) (*LedgerCheckpoint, error
 	
 	return cp, nil
 }
+
+// GetCheckpoint retrieves a specific checkpoint by ledger index
+func (s *Store) GetCheckpoint(ctx context.Context, ledgerIndex int64) (*LedgerCheckpoint, error) {
+	query := `
+		SELECT ledger_index, ledger_hash, parent_hash, close_time, close_time_human, transaction_count, processing_duration_ms
+		FROM core.ledger_checkpoints
+		WHERE ledger_index = $1
+	`
+	
+	cp := &LedgerCheckpoint{}
+	err := s.db.QueryRowContext(ctx, query, ledgerIndex).Scan(
+		&cp.LedgerIndex,
+		&cp.LedgerHash,
+		&cp.ParentHash,
+		&cp.CloseTime,
+		&cp.CloseTimeHuman,
+		&cp.TransactionCount,
+		&cp.ProcessingDurationMs,
+	)
+	
+	if err == sql.ErrNoRows {
+		return nil, nil // Checkpoint doesn't exist
+	}
+	
+	if err != nil {
+		return nil, fmt.Errorf("failed to get checkpoint: %w", err)
+	}
+	
+	return cp, nil
+}

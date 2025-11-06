@@ -247,7 +247,9 @@ resources:
 # Deploy indexer binary and systemd service
 indexer-deploy:
 	@echo "Building indexer binary..."
-	@cd ../../backend && GOOS=linux GOARCH=amd64 go build -o indexer ./cmd/indexer
+	@cd ../../backend && GOOS=linux GOARCH=amd64 go build \
+		-ldflags="-X 'main.buildTime=$$(date -u +%Y-%m-%dT%H:%M:%SZ)'" \
+		-o indexer ./cmd/indexer
 	@echo "✓ Binary built"
 	@echo "Creating indexer .env file..."
 	@if [ ! -f terraform/.envrc ]; then \
@@ -302,12 +304,12 @@ indexer-restart:
 indexer-status:
 	@echo "=== Indexer Status ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"systemctl status indexer --no-pager"
+		"/opt/lucendex/indexer -version && systemctl status indexer --no-pager"
 
 # View indexer logs
 indexer-logs:
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"tail -f /opt/lucendex/logs/indexer.error.log"
+		"tail -f /opt/lucendex/logs/indexer.log"
 
 # Update indexer .env file
 update-indexer-env:

@@ -34,15 +34,20 @@ type Client struct {
 	maxRetries     int
 }
 
-// NewClient creates a new XRPL WebSocket client
+// NewClient creates a new XRPL WebSocket client with default buffer
 func NewClient(url string) *Client {
+	return NewClientWithBuffer(url, 100)
+}
+
+// NewClientWithBuffer creates a new XRPL WebSocket client with custom buffer size
+func NewClientWithBuffer(url string, bufferSize int) *Client {
 	ctx, cancel := context.WithCancel(context.Background())
 	
 	return &Client{
 		url:            url,
 		ctx:            ctx,
 		cancel:         cancel,
-		ledgerChan:     make(chan *LedgerResponse, 100),
+		ledgerChan:     make(chan *LedgerResponse, bufferSize),
 		errorChan:      make(chan error, 10),
 		reconnectDelay: 5 * time.Second,
 		maxRetries:     -1, // Infinite retries
@@ -304,7 +309,7 @@ func (c *Client) Close() error {
 	return nil
 }
 
-// fetchLedger requests full ledger data with transactions
+// fetchLedger requests full ledger data with transactions (async)
 func (c *Client) fetchLedger(ledgerIndex uint64) {
 	c.mu.Lock()
 	conn := c.conn
@@ -328,6 +333,60 @@ func (c *Client) fetchLedger(ledgerIndex uint64) {
 	
 	if err != nil {
 		log.Printf("Failed to request ledger %d: %v", ledgerIndex, err)
+	}
+}
+
+// FetchLedgerSync fetches a ledger synchronously for backfill
+func (c *Client) FetchLedgerSync(ledgerIndex uint64) (*LedgerResponse, error) {
+	c.mu.Lock()
+	conn := c.conn
+	c.mu.Unlock()
+	
+	if conn == nil {
+		return nil, errors.New("not connected")
+	}
+	
+	req := map[string]interface{}{
+		"command":       "ledger",
+		"ledger_index":  ledgerIndex,
+		"transactions":  true,
+		"expand":        true,
+	}
+	
+	c.mu.Lock()
+	err := conn.WriteJSON(req)
+	c.mu.Unlock()
+	
+	if err != nil {
+		return nil, fmt.Errorf("failed to request ledger: %w", err)
+	}
+	
+	// Wait for response (with timeout)
+	timeout := time.After(10 * time.Second)
+	
+	// Temporary channel for this specific ledger
+	responseChan := make(chan *LedgerResponse, 1)
+	
+	// Set up a temporary callback to catch this ledger
+	originalCallback := c.onLedger
+	c.onLedger = func(ledger *LedgerResponse) {
+		if ledger.LedgerIndex == ledgerIndex {
+			select {
+			case responseChan <- ledger:
+			default:
+			}
+		}
+		if originalCallback != nil {
+			originalCallback(ledger)
+		}
+	}
+	defer func() { c.onLedger = originalCallback }()
+	
+	select {
+	case ledger := <-responseChan:
+		return ledger, nil
+	case <-timeout:
+		return nil, fmt.Errorf("timeout waiting for ledger %d", ledgerIndex)
 	}
 }
 

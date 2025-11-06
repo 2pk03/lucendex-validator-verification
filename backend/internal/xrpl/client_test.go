@@ -202,14 +202,21 @@ func TestClient_LedgerCallback(t *testing.T) {
 	server := newMockWSServer(t)
 	defer server.Close()
 	
-	// Queue a ledger closed message
+	// Queue ledger command response (new format)
 	ledgerMsg := `{
-		"type": "ledgerClosed",
-		"ledger_index": 12345,
-		"ledger_hash": "ABC123",
-		"ledger_time": 741234567,
-		"validated": true,
-		"txn_count": 10
+		"status": "success",
+		"result": {
+			"ledger_index": 12345,
+			"ledger_hash": "ABC123",
+			"validated": true,
+			"ledger": {
+				"ledger_index": "12345",
+				"ledger_hash": "ABC123",
+				"close_time": 741234567,
+				"validated": true,
+				"transactions": []
+			}
+		}
 	}`
 	server.toSend = []string{ledgerMsg}
 	
@@ -252,14 +259,21 @@ func TestClient_LedgerChannel(t *testing.T) {
 	server := newMockWSServer(t)
 	defer server.Close()
 	
-	// Queue a ledger closed message
+	// Queue ledger command response (new format)
 	ledgerMsg := `{
-		"type": "ledgerClosed",
-		"ledger_index": 67890,
-		"ledger_hash": "DEF456",
-		"ledger_time": 741234567,
-		"validated": true,
-		"txn_count": 5
+		"status": "success",
+		"result": {
+			"ledger_index": 67890,
+			"ledger_hash": "DEF456",
+			"validated": true,
+			"ledger": {
+				"ledger_index": "67890",
+				"ledger_hash": "DEF456",
+				"close_time": 741234567,
+				"validated": true,
+				"transactions": []
+			}
+		}
 	}`
 	server.toSend = []string{ledgerMsg}
 	
@@ -354,13 +368,14 @@ func TestClient_handleMessage(t *testing.T) {
 		expectError   bool
 	}{
 		{
-			name: "ledger closed message",
+			name: "ledger notification (triggers async fetch)",
 			message: `{
-				"type": "ledgerClosed",
 				"ledger_index": 12345,
-				"validated": true
+				"ledger_hash": "ABC",
+				"ledger_time": 123456,
+				"fee_base": 10
 			}`,
-			expectLedger: true,
+			expectLedger: false, // Async - doesn't immediately send to channel
 			expectError:  false,
 		},
 		{

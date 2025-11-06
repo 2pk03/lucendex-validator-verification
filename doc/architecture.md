@@ -240,5 +240,37 @@ Validator metrics integrate with the Partner API’s `/health` endpoint, so part
 * **M1:** DB schema + router quoting + deterministic fees
 * **M2:** Public endpoints + thin-trade demo (wallet sign & direct submit)
 * **M3:** Partner API (auth, quotas, metering, SLOs); relay optional-only
+  * **On-Demand Order Verification**: Partners submit `ledger_index` + `tx_hash` for executed trades
+  * Backend verifies transaction exists in XRPL via rippled API
+  * Stores verified partner orders in `partner_orders` table for compliance
+  * Enables selective backfill: only fetch specific ledgers when needed for partner disputes
 * **M4:** XRPL validator live + health metrics integration
 * **M5:** 2 pilot integrations (wallet + fund); polish ops
+
+---
+
+### H. Future Hardening (Post-Research Phase)
+
+**Multi-Node Verification for Byzantine Fault Tolerance**
+
+Currently, the indexer trusts a single full-history rippled node for ledger data. For enhanced security, future versions could implement:
+
+* **Multiple rippled connections**: Connect to 3+ independent full-history nodes
+* **Consensus verification**: Verify ledger hashes match across majority of nodes
+* **Automatic failover**: Switch to backup node if primary returns inconsistent data
+* **Byzantine detection**: Alert if nodes disagree on ledger hash (>f faults)
+
+**Implementation Considerations**:
+* Requires managing multiple WebSocket connections
+* Quorum logic: 2f+1 nodes to tolerate f faults
+* Increased operational complexity (3-5 nodes vs 1)
+* Diminishing returns (XRPL network already provides BFT)
+* Cost increase: +$192-320/month for additional nodes
+
+**Research Required**:
+* Historical analysis of XRPL node disagreements
+* Cost-benefit analysis vs single trusted node
+* Impact on quote latency (waiting for quorum)
+* Edge cases: network partitions, slow nodes
+
+**Priority**: Low for V1 (single trusted node sufficient), evaluate post-pilot based on partner requirements and incident data.
