@@ -1,0 +1,29 @@
+# Minimal runtime image for pre-built indexer binary
+FROM alpine:3.19
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata
+
+# Create non-root user
+RUN addgroup -g 1000 indexer && \
+    adduser -D -u 1000 -G indexer indexer
+
+# Set working directory
+WORKDIR /app
+
+# Copy pre-built binary (built locally)
+COPY indexer /app/indexer
+RUN chmod +x /app/indexer
+
+# Create logs directory
+RUN mkdir -p /app/logs && chown -R indexer:indexer /app
+
+# Switch to non-root user
+USER indexer
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD pgrep -x indexer || exit 1
+
+# Run indexer
+ENTRYPOINT ["/app/indexer"]

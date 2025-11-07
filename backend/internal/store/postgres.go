@@ -294,3 +294,48 @@ func (s *Store) GetCheckpoint(ctx context.Context, ledgerIndex int64) (*LedgerCh
 	
 	return cp, nil
 }
+
+// LogConnectionEvent logs a connection event for compliance audit trail
+// This method is non-blocking - if logging fails, it will not fail the calling operation
+func (s *Store) LogConnectionEvent(service, event string, attempt int, err error, durationMs int, metadata map[string]interface{}) {
+	// Fail silently if store or db is nil
+	if s == nil || s.db == nil {
+		return
+	}
+	
+	// Short timeout for audit log - don't block normal operations
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	
+	query := `
+		INSERT INTO core.connection_events
+			(service, event, attempt, error, duration_ms, metadata)
+		VALUES
+			($1, $2, $3, $4, $5, $6::jsonb)
+	`
+	
+	var errStr *string
+	if err != nil {
+		errMsg := err.Error()
+		errStr = &errMsg
+	}
+	
+	var metaJSON []byte
+	if metadata != nil {
+		var jsonErr error
+		metaJSON, jsonErr = json.Marshal(metadata)
+		if jsonErr != nil {
+			// Can't even log this properly, just return silently
+			return
+		}
+	} else {
+		metaJSON = []byte("{}")
+	}
+	
+	_, execErr := s.db.ExecContext(ctx, query, service, event, attempt, errStr, durationMs, string(metaJSON))
+	if execErr != nil {
+		// Audit log failed - don't fail the operation, but we can't log it either
+		// In production, this might be sent to an external monitoring system
+		return
+	}
+}

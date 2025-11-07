@@ -242,69 +242,59 @@ watch-sync-history:
 resources:
 	@echo "=== Resource Usage ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"echo '--- System ---' && free -h && echo '' && df -h / && echo '' && echo '--- Docker ---' && docker stats --no-stream"
+		"echo '--- System ---' && free -h && echo '' && df -h / && echo '' && echo '--- Docker ---' && docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}'"
 
-# Deploy indexer binary and systemd service
+# Deploy indexer as Docker container
 indexer-deploy:
-	@echo "Building indexer binary..."
-	@cd ../../backend && GOOS=linux GOARCH=amd64 go build \
-		-ldflags="-X 'main.buildTime=$$(date -u +%Y-%m-%dT%H:%M:%SZ)'" \
-		-o indexer ./cmd/indexer
-	@echo "✓ Binary built"
-	@echo "Creating indexer .env file..."
+	@echo "Building indexer binary locally..."
 	@if [ ! -f terraform/.envrc ]; then \
 		echo "❌ terraform/.envrc not found"; \
 		exit 1; \
 	fi
+	@cd ../../backend && GOOS=linux GOARCH=amd64 go build \
+		-ldflags="-X 'main.buildTime=$$(date -u +%Y-%m-%dT%H:%M:%SZ)' -w -s" \
+		-o indexer ./cmd/indexer
+	@echo "✓ Binary built"
+	@echo "Uploading files to VM..."
+	@scp -i terraform/data_services_ssh_key docker/docker-compose.yml root@$$(cd terraform && terraform output -raw data_services_ip):/opt/lucendex/docker/
+	@scp -i terraform/data_services_ssh_key docker/Dockerfile.indexer root@$$(cd terraform && terraform output -raw data_services_ip):/opt/lucendex/docker/
+	@scp -i terraform/data_services_ssh_key ../../backend/indexer root@$$(cd terraform && terraform output -raw data_services_ip):/opt/lucendex/docker/
+	@echo "✓ Files uploaded"
+	@echo "Building and starting container..."
 	@. terraform/.envrc && \
-		echo "DATABASE_URL=postgresql://indexer_rw:$$TF_VAR_indexer_db_password@127.0.0.1:5432/lucendex?sslmode=require" > /tmp/indexer.env && \
-		echo "RIPPLED_WS=ws://localhost:6006" >> /tmp/indexer.env
-	@echo "✓ .env created"
-	@echo "Stopping indexer..."
-	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"systemctl stop indexer 2>/dev/null || true"
-	@echo "Copying files to VM..."
-	@scp -i terraform/data_services_ssh_key ../../backend/indexer root@$$(cd terraform && terraform output -raw data_services_ip):/opt/lucendex/
-	@scp -i terraform/data_services_ssh_key /tmp/indexer.env root@$$(cd terraform && terraform output -raw data_services_ip):/opt/lucendex/.env
-	@scp -i terraform/data_services_ssh_key docker/indexer.service root@$$(cd terraform && terraform output -raw data_services_ip):/etc/systemd/system/
-	@scp -i terraform/data_services_ssh_key docker/indexer.logrotate root@$$(cd terraform && terraform output -raw data_services_ip):/etc/logrotate.d/indexer
-	@rm /tmp/indexer.env
-	@echo "✓ Files copied"
-	@echo "Setting permissions..."
-	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"chmod +x /opt/lucendex/indexer && chmod 600 /opt/lucendex/.env && mkdir -p /opt/lucendex/logs"
-	@echo "✓ Permissions set"
-	@echo "Enabling and starting indexer..."
-	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"systemctl daemon-reload && systemctl enable indexer && systemctl start indexer"
-	@echo "✓ Indexer deployed and running"
+		ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"cd /opt/lucendex/docker && \
+		export BUILD_TIME=$$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
+		export INDEXER_DB_PASSWORD=$$TF_VAR_indexer_db_password && \
+		docker compose up -d --build indexer"
+	@echo "✓ Indexer container deployed"
 
 # Stop indexer
 indexer-stop:
 	@echo "Stopping indexer..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"systemctl stop indexer"
+		"docker stop lucendex-indexer"
 	@echo "✓ Indexer stopped"
 
 # Start indexer
 indexer-start:
 	@echo "Starting indexer..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"systemctl start indexer"
+		"docker start lucendex-indexer"
 	@echo "✓ Indexer started"
 
 # Restart indexer
 indexer-restart:
 	@echo "Restarting indexer..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"systemctl restart indexer"
+		"docker restart lucendex-indexer"
 	@echo "✓ Indexer restarted"
 
 # Check indexer status
 indexer-status:
 	@echo "=== Indexer Status ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"/opt/lucendex/indexer -version && systemctl status indexer --no-pager"
+		"docker exec lucendex-indexer /app/indexer -version 2>&1 && docker ps --filter name=lucendex-indexer --format 'Status: {{.Status}}'"
 
 # Check indexer sync status
 indexer-sync-status:
@@ -318,53 +308,21 @@ indexer-sync-status:
 # View indexer logs
 indexer-logs:
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"tail -f /opt/lucendex/logs/indexer.log"
+		"docker logs -f lucendex-indexer"
 
-# Update indexer .env file
-update-indexer-env:
-	@echo "Updating indexer .env file..."
-	@if [ ! -f terraform/.envrc ]; then \
-		echo "❌ terraform/.envrc not found"; \
-		exit 1; \
-	fi
-	@. terraform/.envrc && \
-		echo "DATABASE_URL=postgresql://indexer_rw:$$TF_VAR_indexer_db_password@127.0.0.1:5432/lucendex?sslmode=require" > /tmp/indexer.env && \
-		echo "RIPPLED_WS=ws://localhost:6006" >> /tmp/indexer.env
-	@scp -i terraform/data_services_ssh_key /tmp/indexer.env root@$$(cd terraform && terraform output -raw data_services_ip):/opt/lucendex/.env
-	@rm /tmp/indexer.env
-	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) "chmod 600 /opt/lucendex/.env"
-	@echo "✓ Indexer .env updated. Restart required: make indexer-restart"
-
-# Enable verbose logging
+# Enable verbose logging (via docker-compose env)
 indexer-verbose-on:
 	@echo "Enabling verbose logging..."
-	@if [ ! -f terraform/.envrc ]; then \
-		echo "❌ terraform/.envrc not found"; \
-		exit 1; \
-	fi
-	@. terraform/.envrc && \
-		echo "DATABASE_URL=postgresql://indexer_rw:$$TF_VAR_indexer_db_password@127.0.0.1:5432/lucendex?sslmode=require" > /tmp/indexer.env && \
-		echo "RIPPLED_WS=ws://localhost:6006" >> /tmp/indexer.env && \
-		echo "VERBOSE=true" >> /tmp/indexer.env
-	@scp -i terraform/data_services_ssh_key /tmp/indexer.env root@$$(cd terraform && terraform output -raw data_services_ip):/opt/lucendex/.env
-	@rm /tmp/indexer.env
-	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) "chmod 600 /opt/lucendex/.env"
-	@echo "✓ Verbose logging enabled. Restart required: make indexer-restart"
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"cd /opt/lucendex/docker && sed -i 's/VERBOSE:-false/VERBOSE:-true/' docker-compose.yml"
+	@echo "✓ Verbose enabled in docker-compose.yml. Restart required: make indexer-restart"
 
-# Disable verbose logging
+# Disable verbose logging (via docker-compose env)
 indexer-verbose-off:
 	@echo "Disabling verbose logging..."
-	@if [ ! -f terraform/.envrc ]; then \
-		echo "❌ terraform/.envrc not found"; \
-		exit 1; \
-	fi
-	@. terraform/.envrc && \
-		echo "DATABASE_URL=postgresql://indexer_rw:$$TF_VAR_indexer_db_password@127.0.0.1:5432/lucendex?sslmode=require" > /tmp/indexer.env && \
-		echo "RIPPLED_WS=ws://localhost:6006" >> /tmp/indexer.env
-	@scp -i terraform/data_services_ssh_key /tmp/indexer.env root@$$(cd terraform && terraform output -raw data_services_ip):/opt/lucendex/.env
-	@rm /tmp/indexer.env
-	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) "chmod 600 /opt/lucendex/.env"
-	@echo "✓ Verbose logging disabled. Restart required: make indexer-restart"
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"cd /opt/lucendex/docker && sed -i 's/VERBOSE:-true/VERBOSE:-false/' docker-compose.yml"
+	@echo "✓ Verbose disabled in docker-compose.yml. Restart required: make indexer-restart"
 
 # Rotate database passwords
 rotate-passwords:
@@ -563,6 +521,10 @@ health-check:
 	@echo "=== Database ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
 		'docker exec lucendex-postgres psql -U postgres -d lucendex -t -c "SELECT COUNT(*) FROM pg_tables WHERE schemaname = '"'"'public'"'"';" 2>/dev/null | xargs -I{} echo "Tables: {}"'
+	@echo ""
+	@echo "=== Indexer ==="
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		'docker exec lucendex-indexer /app/indexer -version 2>&1 || echo "Indexer not running"'
 	@echo ""
 	@echo "=== Disk Usage ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \

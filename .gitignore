@@ -81,3 +81,4 @@ infra/*/lucendex-validator-verification/
 *.key
 *.token
 validator-keys.json
+backend/indexer

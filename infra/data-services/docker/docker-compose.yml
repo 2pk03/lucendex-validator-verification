@@ -10,13 +10,18 @@ services:
       POSTGRES_DB: lucendex
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      INDEXER_DB_PASSWORD: ${INDEXER_DB_PASSWORD}
+      ROUTER_DB_PASSWORD: ${ROUTER_DB_PASSWORD}
+      API_DB_PASSWORD: ${API_DB_PASSWORD}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - postgres-wal:/var/lib/postgresql/wal_archive
       - postgres-ssl:/var/lib/postgresql/ssl:ro
       - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql:ro
+      - ./migrations:/docker-entrypoint-initdb.d/migrations:ro
+      - ./run-migrations.sh:/docker-entrypoint-initdb.d/02-run-migrations.sh:ro
     ports:
       - "5432:5432"
     command: postgres -c config_file=/etc/postgresql/postgresql.conf
@@ -93,6 +98,7 @@ services:
     ports:
       - "6006:6006"    # WebSocket (internal only)
       - "51236:51236"  # Peer
+      - "51237:51237"  # RPC (for gap detection)
     networks:
       - lucendex
     # Resource limits - OPTIMIZED for 16-core/64GB RAM + 16GB zram (history needs most RAM)
@@ -120,6 +126,44 @@ services:
     #   retries: 3
     #   start_period: 60s
 
+  # Lucendex Indexer (DEX data processor)
+  indexer:
+    build:
+      context: .
+      dockerfile: Dockerfile.indexer
+    container_name: lucendex-indexer
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rippled-history:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://indexer_rw:${INDEXER_DB_PASSWORD}@postgres:5432/lucendex?sslmode=require
+      RIPPLED_WS: ws://lucendex-rippled-history:6006
+      RIPPLED_HTTP: http://lucendex-rippled-history:51237
+      VERBOSE: ${VERBOSE:-false}
+    networks:
+      - lucendex
+    # Resource limits - Lightweight Go service
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1g
+        reservations:
+          cpus: '0.5'
+          memory: 512m
+    # Volume for logs (optional)
+    volumes:
+      - indexer-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "/app/indexer", "-version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
 volumes:
   postgres-data:
     external: true
@@ -137,6 +181,8 @@ volumes:
   rippled-history-data:
     driver: local
   rippled-history-logs:
+    driver: local
+  indexer-logs:
     driver: local
 
 networks:

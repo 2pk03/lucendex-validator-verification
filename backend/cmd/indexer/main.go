@@ -23,6 +23,7 @@ var (
 
 var (
 	rippledWS   = flag.String("rippled-ws", getEnv("RIPPLED_WS", "ws://localhost:6006"), "rippled Full-History WebSocket URL")
+	rippledHTTP = flag.String("rippled-http", getEnv("RIPPLED_HTTP", "http://localhost:51237"), "rippled HTTP RPC URL for gap detection")
 	dbConnStr   = flag.String("db", getEnv("DATABASE_URL", ""), "PostgreSQL connection string")
 	verbose     = flag.Bool("v", getEnv("VERBOSE", "") == "true", "Enable verbose logging")
 	showVersion = flag.Bool("version", false, "Show version and exit")
@@ -76,11 +77,33 @@ func main() {
 		log.Fatal("DATABASE_URL environment variable or -db flag is required")
 	}
 	
-	// Connect to database
+	// Connect to database with retry logic
 	log.Printf("Connecting to database...")
-	db, err := store.NewStore(*dbConnStr)
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+	var db *store.Store
+	var dbConnectStart time.Time
+	for retry := 0; retry < 10; retry++ {
+		dbConnectStart = time.Now()
+		var err error
+		db, err = store.NewStore(*dbConnStr)
+		if err == nil {
+			// Log successful connection
+			if db != nil {
+				db.LogConnectionEvent("postgres", "success", retry+1, nil, int(time.Since(dbConnectStart).Milliseconds()), nil)
+			}
+			break
+		}
+		// Log failed attempt
+		log.Printf("Database connection attempt %d/10 failed: %v", retry+1, err)
+		if db != nil {
+			db.LogConnectionEvent("postgres", "failure", retry+1, err, int(time.Since(dbConnectStart).Milliseconds()), nil)
+		}
+		if retry < 9 {
+			db.LogConnectionEvent("postgres", "retry", retry+2, nil, 0, map[string]interface{}{"retry_delay_seconds": retry + 1})
+		}
+		time.Sleep(time.Second * time.Duration(retry+1))
+	}
+	if db == nil {
+		log.Fatal("Failed to connect to database after 10 retries")
 	}
 	defer db.Close()
 	log.Printf("✓ Database connected")
@@ -93,11 +116,15 @@ func main() {
 	}
 	
 	// Get current ledger via HTTP RPC (before WebSocket to avoid conflict)
-	rpcURL := "http://localhost:51237" // History node RPC
-	serverInfo, err := xrpl.GetServerInfoHTTP(rpcURL)
+	httpStart := time.Now()
+	db.LogConnectionEvent("rippled-http", "attempt", 1, nil, 0, map[string]interface{}{"url": *rippledHTTP})
+	serverInfo, err := xrpl.GetServerInfoHTTP(*rippledHTTP)
 	if err != nil {
+		db.LogConnectionEvent("rippled-http", "failure", 1, err, int(time.Since(httpStart).Milliseconds()), map[string]interface{}{"url": *rippledHTTP})
 		log.Printf("Warning: Failed to get server info via HTTP: %v", err)
 		log.Printf("Continuing without gap detection...")
+	} else {
+		db.LogConnectionEvent("rippled-http", "success", 1, nil, int(time.Since(httpStart).Milliseconds()), map[string]interface{}{"url": *rippledHTTP})
 	}
 	
 	var currentLedger uint64
@@ -110,9 +137,13 @@ func main() {
 	log.Printf("Connecting to rippled...")
 	client := xrpl.NewClient(*rippledWS)
 	
+	wsStart := time.Now()
+	db.LogConnectionEvent("rippled-ws", "attempt", 1, nil, 0, map[string]interface{}{"url": *rippledWS})
 	if err := client.Connect(); err != nil {
+		db.LogConnectionEvent("rippled-ws", "failure", 1, err, int(time.Since(wsStart).Milliseconds()), map[string]interface{}{"url": *rippledWS})
 		log.Fatalf("Failed to connect to rippled: %v", err)
 	}
+	db.LogConnectionEvent("rippled-ws", "success", 1, nil, int(time.Since(wsStart).Milliseconds()), map[string]interface{}{"url": *rippledWS})
 	defer client.Close()
 	log.Printf("✓ Connected to rippled")
 	
