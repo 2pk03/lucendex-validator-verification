@@ -240,9 +240,17 @@ watch-sync-history:
 
 # Show resource usage
 resources:
+	@echo "=== Docker Containers ==="
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"docker ps --format 'table {{.ID}}\t{{.Names}}\t{{.Status}}'"
+	@echo ""
 	@echo "=== Resource Usage ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"echo '--- System ---' && free -h && echo '' && df -h / && echo '' && echo '--- Docker ---' && docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}'"
+		"docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}'"
+	@echo ""
+	@echo "=== Disk Usage ==="
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"df -h / | tail -1"
 
 # Deploy indexer as Docker container
 indexer-deploy:
@@ -379,6 +387,14 @@ update-validators:
 	@echo "Uploading validators.txt..."
 	@scp -i terraform/data_services_ssh_key docker/validators.txt root@$$(cd terraform && terraform output -raw data_services_ip):/opt/lucendex/docker/
 	@echo "✓ Validators list uploaded. Restart required: make restart"
+
+# Update and deploy docker-compose.yml
+update-docker:
+	@echo "Deploying updated docker-compose.yml..."
+	@scp -i terraform/data_services_ssh_key docker/docker-compose.yml root@$$(cd terraform && terraform output -raw data_services_ip):/opt/lucendex/docker/
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		'cd /opt/lucendex/docker && docker compose up -d'
+	@echo "✓ Docker configuration updated"
 
 # Database Management (Admin - Destructive)
 wipe-ledger-db-api: ## Nuclear: wipe API node database and resync

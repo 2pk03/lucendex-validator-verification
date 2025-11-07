@@ -95,7 +95,7 @@ echo ""
 # Verify domain is set
 log_step "Verifying domain in manifest..."
 VALIDATOR_INFO=$(ssh -i ../terraform/validator_ssh_key root@"${VALIDATOR_IP}" \
-    "docker exec rippled /opt/ripple/bin/rippled validator_info" 2>/dev/null || echo "")
+    "docker exec validator /opt/ripple/bin/rippled validator_info" 2>/dev/null || echo "")
 
 if echo "$VALIDATOR_INFO" | grep -q '"domain" : "lucendex.com"'; then
     log_info "✅ Domain verified in manifest!"
@@ -113,5 +113,5 @@ echo ""
 log_info "Next steps:"
 echo "  1. Verify domain: make validator-verify-domain"
 echo "  2. Check manifest: ssh to validator and run:"
-echo "     docker exec rippled /opt/ripple/bin/rippled validator_info"
+echo "     docker exec validator /opt/ripple/bin/rippled validator_info"
 echo ""

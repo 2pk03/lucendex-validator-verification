@@ -10,6 +10,10 @@ log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
+# Get project root (2 levels up from scripts directory)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
 log_info "Checking rippled versions..."
 
 # Get latest stable release
@@ -28,13 +32,13 @@ echo ""
 log_info "Checking installed versions..."
 
 # Validator
-VALIDATOR_VERSION=$(cd infra/validator && ssh -i terraform/validator_ssh_key root@$(cd terraform && terraform output -raw validator_ip 2>/dev/null) 'docker exec rippled /opt/ripple/bin/rippled --version 2>/dev/null | head -1' 2>/dev/null || echo "Not deployed")
+VALIDATOR_VERSION=$(cd "$PROJECT_ROOT/infra/validator" && ssh -i terraform/validator_ssh_key root@$(cd terraform && terraform output -raw validator_ip 2>/dev/null) 'docker exec validator /opt/ripple/bin/rippled --version 2>/dev/null | head -1' 2>/dev/null || echo "Not deployed")
 
 # Data-services API
-API_VERSION=$(cd infra/data-services && ssh -i terraform/data_services_ssh_key root@$(cd terraform && terraform output -raw data_services_ip 2>/dev/null) 'docker exec lucendex-rippled-api /opt/ripple/bin/rippled --version 2>/dev/null | head -1' 2>/dev/null || echo "Not deployed")
+API_VERSION=$(cd "$PROJECT_ROOT/infra/data-services" && ssh -i terraform/data_services_ssh_key root@$(cd terraform && terraform output -raw data_services_ip 2>/dev/null) 'docker exec lucendex-rippled-api /opt/ripple/bin/rippled --version 2>/dev/null | head -1' 2>/dev/null || echo "Not deployed")
 
 # Data-services History
-HISTORY_VERSION=$(cd infra/data-services && ssh -i terraform/data_services_ssh_key root@$(cd terraform && terraform output -raw data_services_ip 2>/dev/null) 'docker exec lucendex-rippled-history /opt/ripple/bin/rippled --version 2>/dev/null | head -1' 2>/dev/null || echo "Not deployed")
+HISTORY_VERSION=$(cd "$PROJECT_ROOT/infra/data-services" && ssh -i terraform/data_services_ssh_key root@$(cd terraform && terraform output -raw data_services_ip 2>/dev/null) 'docker exec lucendex-rippled-history /opt/ripple/bin/rippled --version 2>/dev/null | head -1' 2>/dev/null || echo "Not deployed")
 
 echo "Validator:        $VALIDATOR_VERSION"
 echo "API Node:         $API_VERSION"
@@ -78,8 +82,8 @@ log_info "Digest: $DIGEST"
 
 # Update compose files
 log_info "Updating docker-compose.yml files..."
-sed -i.bak "s|image: rippleci/rippled@sha256:.*|image: rippleci/rippled@$DIGEST|g" infra/validator/docker/docker-compose.yml
-sed -i.bak "s|image: rippleci/rippled@sha256:.*|image: rippleci/rippled@$DIGEST|g" infra/data-services/docker/docker-compose.yml
+sed -i.bak "s|image: rippleci/rippled@sha256:.*|image: rippleci/rippled@$DIGEST|g" "$PROJECT_ROOT/infra/validator/docker/docker-compose.yml"
+sed -i.bak "s|image: rippleci/rippled@sha256:.*|image: rippleci/rippled@$DIGEST|g" "$PROJECT_ROOT/infra/data-services/docker/docker-compose.yml"
 
 log_info "✓ All compose files updated to $LATEST_VERSION"
 log_warn "Deploy changes:"

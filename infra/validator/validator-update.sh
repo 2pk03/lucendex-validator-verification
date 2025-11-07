@@ -73,7 +73,7 @@ wait_for_rippled() {
                "docker ps --filter name=rippled --filter status=running | grep -q rippled" 2>/dev/null; then
             # Container is running, check if rippled is responding
             if ssh -i "${TERRAFORM_DIR}/validator_ssh_key" root@"${ip}" \
-                   "docker exec rippled /opt/ripple/bin/rippled server_info" &>/dev/null; then
+                   "docker exec validator /opt/ripple/bin/rippled server_info" &>/dev/null; then
                 log_info "✓ rippled is ready"
                 return 0
             fi
@@ -123,7 +123,7 @@ rotate_keys() {
     # Generate new keys using rippled's built-in command
     log_info "Generating new validator keys..."
     local keys_output=$(ssh -i "${TERRAFORM_DIR}/validator_ssh_key" root@"${ip}" \
-        "docker exec rippled /opt/ripple/bin/rippled validation_create")
+        "docker exec validator /opt/ripple/bin/rippled validation_create")
     
     echo "$keys_output"
     
@@ -161,7 +161,7 @@ check_status() {
     local ip=$(get_validator_ip)
     
     ssh -i "${TERRAFORM_DIR}/validator_ssh_key" root@"${ip}" \
-        "docker exec rippled /opt/ripple/bin/rippled server_info" | jq '.result.info.server_state'
+        "docker exec validator /opt/ripple/bin/rippled server_info" | jq '.result.info.server_state'
 }
 
 show_menu() {

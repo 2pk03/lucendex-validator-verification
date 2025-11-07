@@ -381,7 +381,7 @@ validator-health-check:
 	@cd infra/validator && make health-check
 
 validator-logs-startup:
-	@cd infra/validator && docker logs rippled 2>&1 | head -200
+	@cd infra/validator && docker logs validator 2>&1 | head -200
 
 data-logs-startup-api:
 	@cd infra/data-services && ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) "docker logs lucendex-rippled-api 2>&1 | head -200"
@@ -449,3 +449,14 @@ update-xrpl:
 	@echo "$(GREEN)Updating rippled to latest release...$(NC)"
 	@chmod +x scripts/update-xrpl-version.sh
 	@./scripts/update-xrpl-version.sh
+
+# Update docker-compose.yml across all nodes
+update-docker:
+	@echo "$(GREEN)Updating docker-compose.yml on all nodes...$(NC)"
+	@echo "$(YELLOW)=== Validator ===$(NC)"
+	@cd infra/validator && make update-docker
+	@echo ""
+	@echo "$(YELLOW)=== Data Services ===$(NC)"
+	@cd infra/data-services && make update-docker
+	@echo ""
+	@echo "$(GREEN)✓ All docker configurations updated$(NC)"

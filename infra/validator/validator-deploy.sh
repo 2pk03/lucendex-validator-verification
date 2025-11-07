@@ -216,7 +216,7 @@ wait_for_rippled() {
                "docker ps --filter name=rippled --filter status=running | grep -q rippled" 2>/dev/null; then
             # Container is running, check if rippled is responding
             if ssh -i "${TERRAFORM_DIR}/validator_ssh_key" root@"${ip}" \
-                   "docker exec rippled /opt/ripple/bin/rippled server_info" &>/dev/null; then
+                   "docker exec validator /opt/ripple/bin/rippled server_info" &>/dev/null; then
                 log_info "✓ rippled is ready"
                 return 0
             fi
@@ -228,7 +228,7 @@ wait_for_rippled() {
     done
     
     log_error "rippled failed to start properly"
-    log_info "Check logs with: ssh -i terraform/validator_ssh_key root@${ip} 'docker logs rippled'"
+    log_info "Check logs with: ssh -i terraform/validator_ssh_key root@${ip} 'docker logs validator'"
     return 1
 }
 
@@ -241,7 +241,7 @@ generate_validator_keys() {
     
     # Generate validator keys using rippled's built-in command
     local keys_output=$(ssh -i "${TERRAFORM_DIR}/validator_ssh_key" root@"${ip}" \
-        "docker exec rippled /opt/ripple/bin/rippled validation_create")
+        "docker exec validator /opt/ripple/bin/rippled validation_create")
     
     echo "$keys_output"
     

@@ -6,7 +6,7 @@ services:
     # Verify digest with: ./scripts/verify-rippled-image.sh
     # Official source: https://hub.docker.com/r/rippleci/rippled/tags
     image: rippleci/rippled@sha256:467dde2bf955dba05aafb2f6020bfd8eacf64cd07305b41d7dfc3c8e12df342d
-    container_name: rippled
+    container_name: validator
     hostname: xrpl-validator
     restart: unless-stopped
     
@@ -23,16 +23,16 @@ services:
       - SETGID
       - SETUID
     
-    # Resource limits - OPTIMIZED for 4-core/24GB RAM VM
-    # Increased for faster RocksDB sync (reduce after sync complete)
+    # Resource limits - OPTIMIZED for 8-core/24GB RAM VM
+    # Increased for faster RocksDB sync (reduce cache_mb after sync complete)
     deploy:
       resources:
         limits:
           memory: 20g
-          cpus: '3.5'
+          cpus: '6.0'
         reservations:
           memory: 10g
-          cpus: '2.0'
+          cpus: '3.0'
     
     # Ports
     ports:
