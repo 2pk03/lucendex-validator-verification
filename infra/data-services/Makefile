@@ -251,6 +251,15 @@ resources:
 	@echo "=== Disk Usage ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
 		"df -h / | tail -1"
+	@echo ""
+	@echo "=== Volume Sizes ==="
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"for vol in data-services_rippled-api-data data-services_rippled-history-data data-services_rippled-api-logs data-services_rippled-history-logs data-services_indexer-logs docker_postgres-data docker_postgres-wal; do \
+			if docker volume inspect \$$vol &>/dev/null; then \
+				size=\$$(docker run --rm -v \$$vol:/data alpine du -sh /data 2>/dev/null | cut -f1); \
+				echo \"\$$vol: \$$size\"; \
+			fi; \
+		done"
 
 # Deploy indexer as Docker container
 indexer-deploy:
@@ -400,12 +409,15 @@ update-docker:
 wipe-ledger-db-api: ## Nuclear: wipe API node database and resync
 	@echo "⚠️  WARNING: This will DELETE all API node ledger data!"
 	@read -p "Type 'wipe' to confirm: " confirm && [ "$$confirm" = "wipe" ]
-	@echo "Cleaning API node database..."
+	@echo "Stopping API node..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"docker exec lucendex-rippled-api sh -c 'rm -f /var/lib/rippled/db/state* && rm -rf /var/lib/rippled/db/rocksdb/* /var/lib/rippled/db/nudb/*'"
-	@echo "Restarting API node..."
+		"cd /opt/lucendex/docker && docker compose stop rippled-api"
+	@echo "Removing volume..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"docker restart lucendex-rippled-api"
+		"docker volume rm data-services_rippled-api-data"
+	@echo "Starting API node (will recreate volume)..."
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"cd /opt/lucendex/docker && docker compose up -d rippled-api"
 	@sleep 5
 	@echo "✓ API node database wiped - will resync from network"
 	@echo "Monitor with: make sync-status-api"
@@ -413,12 +425,15 @@ wipe-ledger-db-api: ## Nuclear: wipe API node database and resync
 wipe-ledger-db-history: ## Nuclear: wipe history node database and resync
 	@echo "⚠️  WARNING: This will DELETE all history node ledger data!"
 	@read -p "Type 'wipe' to confirm: " confirm && [ "$$confirm" = "wipe" ]
-	@echo "Cleaning history node database..."
+	@echo "Stopping history node..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"docker exec lucendex-rippled-history sh -c 'rm -f /var/lib/rippled/db/state* && rm -rf /var/lib/rippled/db/rocksdb/* /var/lib/rippled/db/nudb/*'"
-	@echo "Restarting history node..."
+		"cd /opt/lucendex/docker && docker compose stop rippled-history"
+	@echo "Removing volume..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"docker restart lucendex-rippled-history"
+		"docker volume rm data-services_rippled-history-data"
+	@echo "Starting history node (will recreate volume)..."
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"cd /opt/lucendex/docker && docker compose up -d rippled-history"
 	@sleep 5
 	@echo "✓ History node database wiped - will resync from network"
 	@echo "Monitor with: make sync-status-history"
@@ -426,12 +441,15 @@ wipe-ledger-db-history: ## Nuclear: wipe history node database and resync
 wipe-ledger-db-all: ## Nuclear: wipe ALL node databases and resync
 	@echo "⚠️  WARNING: This will DELETE ALL ledger data (API + History nodes)!"
 	@read -p "Type 'wipe' to confirm: " confirm && [ "$$confirm" = "wipe" ]
-	@echo "Cleaning all node databases..."
+	@echo "Stopping both nodes..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"docker exec lucendex-rippled-api sh -c 'rm -f /var/lib/rippled/db/state* && rm -rf /var/lib/rippled/db/rocksdb/* /var/lib/rippled/db/nudb/*' && docker exec lucendex-rippled-history sh -c 'rm -f /var/lib/rippled/db/state* && rm -rf /var/lib/rippled/db/rocksdb/* /var/lib/rippled/db/nudb/*'"
-	@echo "Restarting all nodes..."
+		"cd /opt/lucendex/docker && docker compose stop rippled-api rippled-history"
+	@echo "Removing volumes..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"docker restart lucendex-rippled-api lucendex-rippled-history"
+		"docker volume rm data-services_rippled-api-data data-services_rippled-history-data"
+	@echo "Starting both nodes (will recreate volumes)..."
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"cd /opt/lucendex/docker && docker compose up -d rippled-api rippled-history"
 	@sleep 10
 	@echo "✓ All databases wiped - nodes will resync from network"
 	@echo "Monitor with: make health-check"

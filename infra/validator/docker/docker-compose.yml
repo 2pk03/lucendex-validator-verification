@@ -73,6 +73,8 @@ services:
 
 volumes:
   rippled-data:
-    driver: local
+    external: true
+    name: validator_rippled-data
   rippled-log:
-    driver: local
+    external: true
+    name: validator_rippled-log

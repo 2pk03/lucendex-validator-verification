@@ -175,15 +175,20 @@ volumes:
     external: true
     name: docker_postgres-ssl
   rippled-api-data:
-    driver: local
+    external: true
+    name: data-services_rippled-api-data
   rippled-api-logs:
-    driver: local
+    external: true
+    name: data-services_rippled-api-logs
   rippled-history-data:
-    driver: local
+    external: true
+    name: data-services_rippled-history-data
   rippled-history-logs:
-    driver: local
+    external: true
+    name: data-services_rippled-history-logs
   indexer-logs:
-    driver: local
+    external: true
+    name: data-services_indexer-logs
 
 networks:
   lucendex:

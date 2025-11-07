@@ -90,6 +90,14 @@ resources: ## Check VM resource usage
 	@echo ""
 	@echo "=== Disk Usage ==="
 	@$(SSH_CMD) "df -h / | tail -1"
+	@echo ""
+	@echo "=== Volume Sizes ==="
+	@$(SSH_CMD) "for vol in validator_rippled-data validator_rippled-log; do \
+		if docker volume inspect \$$vol &>/dev/null; then \
+			size=\$$(docker run --rm -v \$$vol:/data alpine du -sh /data 2>/dev/null | cut -f1); \
+			echo \"\$$vol: \$$size\"; \
+		fi; \
+	done"
 
 # Removed: disk (duplicates resources command)
 
