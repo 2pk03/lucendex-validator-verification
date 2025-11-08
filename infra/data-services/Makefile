@@ -409,13 +409,16 @@ update-docker:
 wipe-ledger-db-api: ## Nuclear: wipe API node database and resync
 	@echo "⚠️  WARNING: This will DELETE all API node ledger data!"
 	@read -p "Type 'wipe' to confirm: " confirm && [ "$$confirm" = "wipe" ]
-	@echo "Stopping API node..."
+	@echo "Stopping and removing API node container..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"cd /opt/lucendex/docker && docker compose stop rippled-api"
+		"cd /opt/lucendex/docker && docker compose rm -sf rippled-api"
 	@echo "Removing volume..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"docker volume rm data-services_rippled-api-data"
-	@echo "Starting API node (will recreate volume)..."
+		"docker volume rm data-services_rippled-api-data 2>/dev/null || true"
+	@echo "Recreating volume..."
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"docker volume create data-services_rippled-api-data"
+	@echo "Starting API node..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
 		"cd /opt/lucendex/docker && docker compose up -d rippled-api"
 	@sleep 5
@@ -425,13 +428,16 @@ wipe-ledger-db-api: ## Nuclear: wipe API node database and resync
 wipe-ledger-db-history: ## Nuclear: wipe history node database and resync
 	@echo "⚠️  WARNING: This will DELETE all history node ledger data!"
 	@read -p "Type 'wipe' to confirm: " confirm && [ "$$confirm" = "wipe" ]
-	@echo "Stopping history node..."
+	@echo "Stopping and removing history node container..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"cd /opt/lucendex/docker && docker compose stop rippled-history"
+		"cd /opt/lucendex/docker && docker compose rm -sf rippled-history"
 	@echo "Removing volume..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"docker volume rm data-services_rippled-history-data"
-	@echo "Starting history node (will recreate volume)..."
+		"docker volume rm data-services_rippled-history-data 2>/dev/null || true"
+	@echo "Recreating volume..."
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"docker volume create data-services_rippled-history-data"
+	@echo "Starting history node..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
 		"cd /opt/lucendex/docker && docker compose up -d rippled-history"
 	@sleep 5
@@ -441,13 +447,16 @@ wipe-ledger-db-history: ## Nuclear: wipe history node database and resync
 wipe-ledger-db-all: ## Nuclear: wipe ALL node databases and resync
 	@echo "⚠️  WARNING: This will DELETE ALL ledger data (API + History nodes)!"
 	@read -p "Type 'wipe' to confirm: " confirm && [ "$$confirm" = "wipe" ]
-	@echo "Stopping both nodes..."
+	@echo "Stopping and removing containers..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"cd /opt/lucendex/docker && docker compose stop rippled-api rippled-history"
+		"cd /opt/lucendex/docker && docker compose rm -sf rippled-api rippled-history"
 	@echo "Removing volumes..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		"docker volume rm data-services_rippled-api-data data-services_rippled-history-data"
-	@echo "Starting both nodes (will recreate volumes)..."
+		"docker volume rm data-services_rippled-api-data data-services_rippled-history-data 2>/dev/null || true"
+	@echo "Recreating volumes..."
+	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
+		"docker volume create data-services_rippled-api-data && docker volume create data-services_rippled-history-data"
+	@echo "Starting both nodes..."
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
 		"cd /opt/lucendex/docker && docker compose up -d rippled-api rippled-history"
 	@sleep 10
@@ -552,9 +561,9 @@ health-check:
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
 		'docker exec lucendex-rippled-api rippled validators 2>/dev/null | jq -r ".result.validator_list | \"Status: \(.status)\nExpiration: \(.expiration)\nCount: \(.count)\""'
 	@echo ""
-	@echo "=== Database ==="
+	@echo "=== Database Tables ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \
-		'docker exec lucendex-postgres psql -U postgres -d lucendex -t -c "SELECT COUNT(*) FROM pg_tables WHERE schemaname = '"'"'public'"'"';" 2>/dev/null | xargs -I{} echo "Tables: {}"'
+		'docker exec lucendex-postgres psql -U postgres -d lucendex -t -c "SELECT schemaname, tablename FROM pg_tables WHERE schemaname IN ('"'"'public'"'"', '"'"'core'"'"') ORDER BY schemaname, tablename;" 2>/dev/null'
 	@echo ""
 	@echo "=== Indexer ==="
 	@ssh -i terraform/data_services_ssh_key root@$$(cd terraform && terraform output -raw data_services_ip) \

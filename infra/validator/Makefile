@@ -234,10 +234,12 @@ wipe-ledger-db: ## Nuclear option: wipe database and resync
 	@echo "⚠️  WARNING: This will DELETE all ledger data and resync from network!"
 	@read -p "Type 'wipe' to confirm: " confirm && [ "$$confirm" = "wipe" ]
 	@echo "Stopping and removing container..."
-	@$(SSH_CMD) "cd /opt/validator && docker compose down"
+	@$(SSH_CMD) "cd /opt/validator && docker compose rm -sf rippled"
 	@echo "Removing database volume..."
 	@$(SSH_CMD) "docker volume rm validator_rippled-data 2>/dev/null || true"
-	@echo "Starting rippled (will recreate volume)..."
+	@echo "Recreating volume..."
+	@$(SSH_CMD) "docker volume create validator_rippled-data"
+	@echo "Starting rippled..."
 	@$(SSH_CMD) "cd /opt/validator && docker compose up -d"
 	@sleep 10
 	@echo "✓ Database volume wiped - node will resync from network"
