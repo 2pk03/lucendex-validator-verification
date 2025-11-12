@@ -1,10 +1,14 @@
-# _redirects (no extension, plain text)
-# Clean up old .html docs permanently
-/docs/api.html          /docs/api         301
-/docs/indexer.html      /docs/indexer     301
-/docs/compliance.html   /docs/compliance  301
+# 1. Kill the .html forever (301 once, then Cloudflare caches it)
+docs/router.html        /docs/router/      301!
+docs/api.html           /docs/api/         301!
+docs/indexer.html       /docs/indexer/     301!
+docs/compliance.html    /docs/compliance/  301!
 
-# Optional: Catch any stray .html site-wide (if you have more)
-/*.html                 /:splat           301
+# 2. Force trailing slash on the four doc sections (one-time 301, then 200 forever)
+docs/api                /docs/api/         301!
+docs/indexer            /docs/indexer/     301!
+docs/compliance         /docs/compliance/  301!
+docs/router             /docs/router/      301!
 
-# Fallback for SPA if needed (/* /index.html 200) — add if you have client routing
+# 3. Catch any stray non-slash version site-wide (optional but bulletproof)
+/*                      /$splat/           301!

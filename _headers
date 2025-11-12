@@ -15,11 +15,11 @@
   X-Frame-Options: SAMEORIGIN
   X-XSS-Protection: 1; mode=block
 
-/*
-  Link: <https://lucendex.com/>; rel="canonical"
-
-/docs/*
-  Link: <https://lucendex.com/docs/>; rel="canonical"
-
 /docs/api/
-  Link: <https://lucendex.com/docs/api/>; rel="canonical"
+  Link: </docs/api/>; rel="canonical"
+/docs/indexer/
+  Link: </docs/indexer/>; rel="canonical"
+/docs/compliance/
+  Link: </docs/compliance/>; rel="canonical"
+/docs/router/
+  Link: </docs/router/>; rel="canonical"
